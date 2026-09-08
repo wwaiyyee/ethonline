@@ -33,5 +33,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# EdGraph local operational database
+.data/
+
 # typescript
 *.tsbuildinfo
