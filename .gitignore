@@ -1,9 +1,6 @@
 # dependencies
 node_modules
 
-
-
-
 # yarn
 .yarn/*
 !.yarn/patches
@@ -29,3 +26,4 @@ node_modules
 
 # cli
 dist
+node_modules
