@@ -14,6 +14,7 @@
     "infra:down": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose down; else docker-compose down; fi'",
     "infra:logs": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose logs -f; else docker-compose logs -f; fi'",
     "facilitator:check-types": "cd facilitator && npm run check-types",
+    "edgraph:db:check": "yarn workspace @sh/nextjs db:check",
     "hardhat:account": "yarn workspace @sh/hardhat account",
     "hardhat:account:generate": "yarn workspace @sh/hardhat account:generate",
     "hardhat:account:import": "yarn workspace @sh/hardhat account:import",
