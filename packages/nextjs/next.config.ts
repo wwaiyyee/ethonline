@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   transpilePackages: ["@hashgraph/hedera-wallet-connect", "@scaffold-hbar-ui/components"],
+  serverExternalPackages: ["better-sqlite3"],
   typescript: {
     ignoreBuildErrors: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
   },
