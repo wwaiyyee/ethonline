@@ -14,7 +14,7 @@ async function main() {
 
   if (networkName === "localhost" || networkName === "hardhat") {
     // Deploy command on the localhost network
-    const hardhat = spawn("hardhat", ["deploy", ...process.argv.slice(2)], {
+    const hardhat = spawn("hardhat", ["deploy", "--write", "true", ...process.argv.slice(2)], {
       stdio: "inherit",
       env: process.env,
       shell: process.platform === "win32",
@@ -39,7 +39,7 @@ async function main() {
     const wallet = await Wallet.fromEncryptedJson(encryptedKey, pass);
     process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY = wallet.privateKey;
 
-    const hardhat = spawn("hardhat", ["deploy", ...process.argv.slice(2)], {
+    const hardhat = spawn("hardhat", ["deploy", "--write", "true", ...process.argv.slice(2)], {
       stdio: "inherit",
       env: process.env,
       shell: process.platform === "win32",

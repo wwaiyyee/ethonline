@@ -1,0 +1,30 @@
+name: edgraph-evidence
+version: 1
+description: >-
+  Monitor a live Base stablecoin pool with The Graph, then buy EdGraph's
+  deterministic depeg evidence report through an HBAR x402 payment.
+inputs:
+  claimId: string
+steps:
+  - id: graph-risk-snapshot
+    service: graph
+    action: queryPoolRiskSnapshot
+    purpose: Use live pool price, liquidity, volume, timestamps, and provenance.
+  - id: evidence-report
+    service: edgraph-evidence-api
+    method: POST
+    url: ${EDGRAPH_EVIDENCE_API_URL}
+    body: { claimId: ${claimId} }
+    payment: x402
+    network: hedera:testnet
+    asset: 0.0.0
+    purpose: Pay HBAR only when the Graph snapshot warrants deeper evidence.
+  - id: policy-decision
+    service: edgraph-policy-engine
+    action: evaluateEvidence
+    inputs: [graph-risk-snapshot, evidence-report]
+    purpose: Return a simulated payout recommendation for DAO approval.
+outputs:
+  - graph-risk-snapshot
+  - evidence-report
+  - policy-decision
