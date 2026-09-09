@@ -42,6 +42,7 @@
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "daisyui": "^5.0.9",
+    "dotenv": "^17.4.2",
     "ethers": "^6.16.0",
     "next": "^15.2.8",
     "next-nprogress-bar": "^2.3.13",
