@@ -1,18 +1,33 @@
-import { DEFAULT_GRAPH_LOOKBACK_SECONDS, getGraphConfig, type GraphConfig } from "~~/services/graph/config";
+import { DEFAULT_GRAPH_LOOKBACK_SECONDS, type GraphConfig, getGraphConfig } from "~~/services/graph/config";
 import { hashGraphQuery, makeGraphProvenance } from "~~/services/graph/provenance";
 import type { GraphProvenance } from "~~/services/policy/types";
 
 const POOL_QUERY = /* GraphQL */ `
   query EdGraphPool($pool: ID!, $from: Int!) {
-    _meta { block { number timestamp } }
-    bundle { ethPriceUSD }
+    _meta {
+      block {
+        number
+        timestamp
+      }
+    }
+    bundle(id: "1") {
+      ethPriceUSD
+    }
     pool(id: $pool) {
       id
       liquidity
       totalValueLockedUSD
       volumeUSD
-      token0 { id symbol decimals }
-      token1 { id symbol decimals }
+      token0 {
+        id
+        symbol
+        decimals
+      }
+      token1 {
+        id
+        symbol
+        decimals
+      }
       token0Price
       token1Price
       swaps(first: 100, where: { timestamp_gte: $from }, orderBy: timestamp, orderDirection: desc) {
@@ -21,7 +36,9 @@ const POOL_QUERY = /* GraphQL */ `
         amount1
         amountUSD
         sqrtPriceX96
-        transaction { blockNumber }
+        transaction {
+          blockNumber
+        }
       }
       poolDayData(first: 2, orderBy: date, orderDirection: desc) {
         date
@@ -54,7 +71,11 @@ type GraphPool = {
   poolDayData?: Array<{ date: string; tvlUSD: string; volumeUSD: string }>;
 };
 type GraphResponse = {
-  data?: { _meta?: { block?: { number: number; timestamp: number } }; bundle?: { ethPriceUSD: string }; pool?: GraphPool | null };
+  data?: {
+    _meta?: { block?: { number: number; timestamp: number } };
+    bundle?: { ethPriceUSD: string };
+    pool?: GraphPool | null;
+  };
   errors?: Array<{ message: string }>;
 };
 
@@ -74,7 +95,8 @@ async function queryGraph(config: GraphConfig, variables: Record<string, unknown
   });
   if (!response.ok) throw new Error(`The Graph provider returned HTTP ${response.status}.`);
   const payload = (await response.json()) as GraphResponse;
-  if (payload.errors?.length) throw new Error(`The Graph query failed: ${payload.errors.map(error => error.message).join("; ")}`);
+  if (payload.errors?.length)
+    throw new Error(`The Graph query failed: ${payload.errors.map(error => error.message).join("; ")}`);
   if (!payload.data?.pool) throw new Error("The Graph returned no pool for the configured address.");
   return payload;
 }
@@ -101,7 +123,9 @@ function stablePriceFromToken1PerToken0(
   throw new Error("Configured stablecoin and quote token are not the pool's token pair.");
 }
 
-export async function queryPoolData(options: { lookbackSeconds?: number; config?: GraphConfig } = {}): Promise<GraphPoolData> {
+export async function queryPoolData(
+  options: { lookbackSeconds?: number; config?: GraphConfig } = {},
+): Promise<GraphPoolData> {
   const config = options.config ?? getGraphConfig();
   const toTimestamp = Math.floor(Date.now() / 1000);
   const fromTimestamp = toTimestamp - (options.lookbackSeconds ?? DEFAULT_GRAPH_LOOKBACK_SECONDS);
