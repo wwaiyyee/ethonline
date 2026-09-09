@@ -80,3 +80,54 @@ export type PolicyDecision = {
   recommendedPayoutAmountBaseUnits?: string;
   evaluatedAt: number;
 };
+
+/**
+ * Evidence purchased from x402 resource server.
+ * `fileId` is the x402 FileRegistry file id (bytes32 hex).
+ * `localPath` is where the evidence JSON was saved after download.
+ * `amountPaidTinybar` is the x402 price paid (native HBAR).
+ */
+export type PurchasedEvidence = {
+  fileId: string;
+  objectKey: string;
+  localPath: string;
+  amountPaidTinybar: string;
+  purchasedAt: number;
+  contentHash: string;
+};
+
+/**
+ * Hedera payment proof for x402 evidence purchases.
+ * `transactionId` is the settled Hedera transfer transaction (e.g. "0.0.1234@1234567890.123456789").
+ * `payerAccountId` is the policy agent's funded account (e.g. "0.0.5678").
+ * `recipientAccountId` is the evidence seller's account (matched against FileRegistry `payToAccountId`).
+ */
+export type PaymentProof = {
+  transactionId: string;
+  payerAccountId: string;
+  recipientAccountId: string;
+  amountTinybar: string;
+  timestamp: number;
+  memo?: string;
+};
+
+/**
+ * Claim record combining policy, observations, decision, evidence, and status.
+ * Persisted in SQLite and drives the UI claim lifecycle.
+ */
+export type Claim = {
+  claimId: string;
+  policyId: string;
+  status: ClaimStatus;
+  detectedAt: number;
+  lowestPriceUsdMicros?: number;
+  durationMinutes?: number;
+  decision?: PolicyDecision;
+  evidenceFileIds?: string[];
+  lastAgentAction?: AgentAction;
+  lastAgentActionAt?: number;
+  resolutionTransactionId?: string;
+  approvedAt?: number;
+  rejectedAt?: number;
+  notes?: string;
+};
