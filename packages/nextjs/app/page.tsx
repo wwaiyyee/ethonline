@@ -5,7 +5,7 @@ import Link from "next/link";
 import { HederaPortalFaucet } from "@scaffold-hbar-ui/components";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import { ArrowUpTrayIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { ClipboardDocumentListIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 import { HederaAddress } from "~~/components/scaffold-hbar";
 import { useTargetNetwork } from "~~/hooks/scaffold-hbar";
 
@@ -30,26 +30,10 @@ const Home: NextPage = () => {
             />
             <Image src="/Hedera-Icon-Dark.svg" alt="Hedera icon" width={80} height={80} className="mb-6 dark:hidden" />
             <div className="flex flex-col items-center gap-1 mb-4">
-              <span className="block text-lg font-medium tracking-widest uppercase text-white/80 dark:text-white/60">
-                Built on Hedera
+              <span className="block text-4xl font-bold text-white mb-2">EdGraph</span>
+              <span className="block text-lg font-medium tracking-wide text-white/90">
+                Stablecoin Coverage Operations on Hedera
               </span>
-              <span className="block text-lg font-medium tracking-widest uppercase text-white/80 dark:text-white/60">
-                For
-              </span>
-              <Image
-                src="/Hedera-Wordmark-Lockup-White.svg"
-                alt="Hedera"
-                width={240}
-                height={48}
-                className="mt-1 hidden dark:block"
-              />
-              <Image
-                src="/Hedera-Wordmark-Lockup-Dark.svg"
-                alt="Hedera"
-                width={240}
-                height={48}
-                className="mt-1 dark:hidden"
-              />
             </div>
           </div>
         </div>
@@ -82,27 +66,27 @@ const Home: NextPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <div className="bg-base-100 rounded-2xl shadow-md p-8 text-center flex flex-col items-center hover:shadow-lg transition-shadow border border-base-300">
               <div className="w-14 h-14 rounded-full hedera-gradient flex items-center justify-center mb-4">
-                <ShoppingBagIcon className="h-7 w-7 text-white" />
+                <DocumentTextIcon className="h-7 w-7 text-white" />
               </div>
-              <h3 className="font-bold text-lg mb-2">File Marketplace</h3>
+              <h3 className="font-bold text-lg mb-2">Coverage Policies</h3>
               <p className="text-base-content/70 text-sm m-0 mb-6">
-                Browse public and private files. Private downloads are gated behind x402 HBAR payments.
+                Browse registered stablecoin depeg coverage policies on Hedera testnet.
               </p>
-              <Link href="/files" passHref className="btn btn-primary btn-sm">
-                Open Marketplace
+              <Link href="/policies" passHref className="btn btn-primary btn-sm">
+                View Policies
               </Link>
             </div>
 
             <div className="bg-base-100 rounded-2xl shadow-md p-8 text-center flex flex-col items-center hover:shadow-lg transition-shadow border border-base-300">
               <div className="w-14 h-14 rounded-full hedera-gradient flex items-center justify-center mb-4">
-                <ArrowUpTrayIcon className="h-7 w-7 text-white" />
+                <ClipboardDocumentListIcon className="h-7 w-7 text-white" />
               </div>
-              <h3 className="font-bold text-lg mb-2">Upload a file</h3>
+              <h3 className="font-bold text-lg mb-2">Claims</h3>
               <p className="text-base-content/70 text-sm m-0 mb-6">
-                Register files on-chain, set a price in HBAR, and store content in private MinIO storage.
+                Track detected depegs, purchased evidence, and autonomous policy decisions.
               </p>
-              <Link href="/files/upload" passHref className="btn btn-primary btn-sm">
-                Upload
+              <Link href="/claims" passHref className="btn btn-primary btn-sm">
+                View Claims
               </Link>
             </div>
           </div>
@@ -120,7 +104,7 @@ const Home: NextPage = () => {
               <div className="flex items-start gap-3">
                 <span className="font-bold text-primary text-lg leading-none mt-0.5">2</span>
                 <div>
-                  <p className="m-0 font-medium">Deploy FileRegistry</p>
+                  <p className="m-0 font-medium">Deploy PolicyRegistry</p>
                   <code className="text-xs bg-base-200 px-2 py-1 rounded">
                     yarn hardhat:deploy --network hederaTestnet
                   </code>
