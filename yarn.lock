@@ -3825,7 +3825,7 @@ __metadata:
     "@tailwindcss/postcss": latest
     "@tanstack/react-query": ^5.59.15
     "@trivago/prettier-plugin-sort-imports": ^4.3.0
-    "@types/better-sqlite3": ^7.6.12
+    "@types/better-sqlite3": ^7.6.13
     "@types/node": ^18.19.50
     "@types/react": ^19.0.7
     "@walletconnect/ethereum-provider": ^2.18.0
@@ -3836,7 +3836,7 @@ __metadata:
     abitype: 1.0.6
     accounts: ~0.12.0
     assert: ^2.1.0
-    better-sqlite3: ^11.8.1
+    better-sqlite3: ^11.10.0
     blo: ^1.2.0
     buffer: ^6.0.3
     crypto-browserify: ^3.12.1
@@ -5056,7 +5056,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/better-sqlite3@npm:^7.6.12":
+"@types/better-sqlite3@npm:^7.6.13":
   version: 7.6.13
   resolution: "@types/better-sqlite3@npm:7.6.13"
   dependencies:
@@ -7025,7 +7025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"better-sqlite3@npm:^11.8.1":
+"better-sqlite3@npm:^11.10.0":
   version: 11.10.0
   resolution: "better-sqlite3@npm:11.10.0"
   dependencies:
