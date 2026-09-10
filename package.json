@@ -15,6 +15,8 @@
     "infra:logs": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose logs -f; else docker-compose logs -f; fi'",
     "facilitator:check-types": "cd facilitator && npm run check-types",
     "edgraph:db:check": "yarn workspace @sh/nextjs db:check",
+    "edgraph:agent": "yarn workspace @sh/nextjs edgraph:agent",
+    "edgraph:monitor": "yarn workspace @sh/nextjs edgraph:monitor",
     "hardhat:account": "yarn workspace @sh/hardhat account",
     "hardhat:account:generate": "yarn workspace @sh/hardhat account:generate",
     "hardhat:account:import": "yarn workspace @sh/hardhat account:import",
@@ -48,6 +50,7 @@
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
+    "@mapbox/node-pre-gyp": "^2.0.3",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10"
   },

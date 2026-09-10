@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowUpTrayIcon, ChartBarIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { WalletConnectButton } from "~~/components/scaffold-hbar";
 import { useOutsideClick } from "~~/hooks/scaffold-hbar";
@@ -21,6 +22,11 @@ export const menuLinks: HeaderMenuLink[] = [
   {
     label: "Policies",
     href: "/policies",
+  },
+  {
+    label: "EdGraph",
+    href: "/edgraph",
+    icon: <ChartBarIcon className="h-4 w-4" />,
   },
   {
     label: "Claims",
