@@ -69,9 +69,16 @@ export async function writeContractViaNativeProvider(args: {
   functionName: string;
   fnArgs: readonly unknown[];
 }): Promise<NativeContractWriteResult> {
+  console.log("=== writeContractViaNativeProvider DEBUG ===");
+  console.log("Raw hederaAccountId:", args.hederaAccountId);
+  console.log("Type:", typeof args.hederaAccountId);
+  console.log("Length:", args.hederaAccountId?.length);
+
   const payerAccountId = parseHederaAccountId(args.hederaAccountId);
+  console.log("Parsed payerAccountId:", payerAccountId);
+
   if (!payerAccountId) {
-    throw new Error("Invalid Hedera account id for contract execution");
+    throw new Error(`Invalid Hedera account id for contract execution. Received: "${args.hederaAccountId}"`);
   }
 
   const calldata = encodeFunctionData({

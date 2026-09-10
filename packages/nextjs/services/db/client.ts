@@ -14,6 +14,11 @@ const migrations: Migration[] = [
     name: "initial",
     fileName: "001_initial.sql",
   },
+  {
+    version: 2,
+    name: "evidence payment uniqueness",
+    fileName: "002_evidence_payment_unique.sql",
+  },
 ];
 
 type DbGlobal = typeof globalThis & {

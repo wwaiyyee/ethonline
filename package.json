@@ -53,5 +53,9 @@
   },
   "engines": {
     "node": ">=20.18.3"
+  },
+  "dependencies": {
+    "graphql": "^17.0.2",
+    "graphql-request": "^7.4.0"
   }
 }

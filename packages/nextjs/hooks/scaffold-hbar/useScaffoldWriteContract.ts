@@ -6,6 +6,7 @@ import { WriteContractErrorType, WriteContractReturnType } from "wagmi/actions";
 import { WriteContractVariables } from "wagmi/query";
 import { useSelectedNetwork } from "~~/hooks/scaffold-hbar";
 import { useDeployedContractInfo, useTransactor } from "~~/hooks/scaffold-hbar";
+import { useHederaWalletConnect } from "~~/services/web3/hederaWalletConnect";
 import { AllowedChainIds, notification } from "~~/utils/scaffold-hbar";
 import {
   ContractAbi,
@@ -72,6 +73,7 @@ export function useScaffoldWriteContract<TContractName extends ContractName>(
   }, [configOrName]);
 
   const { chain: accountChain } = useAccount();
+  const { isConnected: hederaConnected, accountId: hederaAccountId } = useHederaWalletConnect();
   const writeTx = useTransactor();
   const [isMining, setIsMining] = useState(false);
 
@@ -97,12 +99,25 @@ export function useScaffoldWriteContract<TContractName extends ContractName>(
       return;
     }
 
-    if (!accountChain?.id) {
+    if (!accountChain?.id && !hederaConnected) {
+      console.error("=== WALLET CHECK FAILED ===");
+      console.error("accountChain?.id:", accountChain?.id);
+      console.error("hederaConnected:", hederaConnected);
+      console.error("hederaAccountId:", hederaAccountId);
       notification.error("Please connect your wallet");
       return;
     }
 
-    if (accountChain?.id !== selectedNetwork.id) {
+    console.log("=== WALLET CHECK PASSED ===");
+    console.log("Using wallet:", accountChain?.id ? "EVM/wagmi" : "Hedera");
+    console.log("accountChain?.id:", accountChain?.id);
+    console.log("hederaConnected:", hederaConnected);
+    console.log("hederaAccountId:", hederaAccountId);
+
+    // For Hedera, we use the selected network since accountChain may not be set
+    const chainId = accountChain?.id || selectedNetwork.id;
+
+    if (accountChain?.id && accountChain.id !== selectedNetwork.id) {
       notification.error(`Wallet is connected to the wrong network. Please switch to ${selectedNetwork.name}`);
       return;
     }
@@ -117,12 +132,15 @@ export function useScaffoldWriteContract<TContractName extends ContractName>(
         ...variables,
       } as WriteContractVariables<Abi, string, any[], Config, number>;
 
-      if (!finalConfig?.disableSimulate) {
+      // Skip simulation for Hedera wallets (wagmi simulation doesn't work with Hedera)
+      if (!finalConfig?.disableSimulate && accountChain?.id) {
         await simulateContractWriteAndNotifyError({
           wagmiConfig,
           writeContractParams: writeContractObject,
           chainId: selectedNetwork.id as AllowedChainIds,
         });
+      } else if (!accountChain?.id) {
+        console.log("Skipping contract simulation for Hedera wallet");
       }
 
       const makeWriteWithParams = () =>
@@ -160,12 +178,25 @@ export function useScaffoldWriteContract<TContractName extends ContractName>(
       );
       return;
     }
-    if (!accountChain?.id) {
+    if (!accountChain?.id && !hederaConnected) {
+      console.error("=== WALLET CHECK FAILED ===");
+      console.error("accountChain?.id:", accountChain?.id);
+      console.error("hederaConnected:", hederaConnected);
+      console.error("hederaAccountId:", hederaAccountId);
       notification.error("Please connect your wallet");
       return;
     }
 
-    if (accountChain?.id !== selectedNetwork.id) {
+    console.log("=== WALLET CHECK PASSED ===");
+    console.log("Using wallet:", accountChain?.id ? "EVM/wagmi" : "Hedera");
+    console.log("accountChain?.id:", accountChain?.id);
+    console.log("hederaConnected:", hederaConnected);
+    console.log("hederaAccountId:", hederaAccountId);
+
+    // For Hedera, we use the selected network since accountChain may not be set
+    const chainId = accountChain?.id || selectedNetwork.id;
+
+    if (accountChain?.id && accountChain.id !== selectedNetwork.id) {
       notification.error(`Wallet is connected to the wrong network. Please switch to ${selectedNetwork.name}`);
       return;
     }
