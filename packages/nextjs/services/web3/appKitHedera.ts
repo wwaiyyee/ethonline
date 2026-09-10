@@ -39,9 +39,16 @@ export function getHederaAccountIdFromSession(provider: HederaProvider | null): 
   const session = (provider as unknown as { session?: { namespaces?: Record<string, { accounts?: string[] }> } })
     .session;
   const account = session?.namespaces?.hedera?.accounts?.[0];
+  console.log("=== getHederaAccountIdFromSession ===");
+  console.log("Session exists:", !!session);
+  console.log("Full account string:", account);
+  console.log("Namespaces:", session?.namespaces);
   if (!account) return null;
   const accountId = account.split(":")[2];
-  return accountId && /^\d+\.\d+\.\d+$/.test(accountId) ? accountId : null;
+  console.log("Extracted accountId:", accountId);
+  const isValid = accountId && /^\d+\.\d+\.\d+$/.test(accountId);
+  console.log("Is valid:", isValid);
+  return isValid ? accountId : null;
 }
 
 export function hasHederaSession(provider: HederaProvider | null): boolean {

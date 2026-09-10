@@ -111,6 +111,13 @@ export const HederaWalletConnectProvider = ({ children }: { children: React.Reac
     const sessionReady = hasHederaSession(provider);
     const connected = Boolean(appKitHederaConnected && accountId);
 
+    console.log("=== HEDERA ACCOUNT ID RESOLUTION ===");
+    console.log("fromProvider:", fromProvider);
+    console.log("appKitHederaAddress:", appKitHederaAddress);
+    console.log("fromAppKit:", fromAppKit);
+    console.log("Final accountId:", accountId);
+    console.log("Type:", typeof accountId);
+
     return {
       hederaAccountId: accountId,
       hederaSessionReady: sessionReady,

@@ -3,7 +3,7 @@ export const EDGRAPH_DATA_CHAIN = "base" as const;
 export type EdGraphDataChain = typeof EDGRAPH_DATA_CHAIN;
 
 /** Values used by the deterministic policy engine and persisted in claims. */
-export type DecisionOutcome = "ELIGIBLE_RECOMMENDATION" | "INELIGIBLE" | "NEEDS_HUMAN_REVIEW";
+export type DecisionOutcome = "ELIGIBLE" | "ELIGIBLE_RECOMMENDATION" | "INELIGIBLE_RECOMMENDATION" | "INELIGIBLE" | "NEEDS_REVIEW" | "NEEDS_HUMAN_REVIEW";
 
 export type ClaimStatus =
   | "POTENTIAL_CLAIM"
@@ -13,7 +13,7 @@ export type ClaimStatus =
   | "APPROVED"
   | "REJECTED";
 
-export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED";
+export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED" | string;
 
 /**
  * Terms committed by PolicyRegistry. Monetary values are strings so a value
@@ -77,6 +77,8 @@ export type EvidenceReport = {
 export type PolicyDecision = {
   outcome: DecisionOutcome;
   reasons: string[];
+  confidence?: "HIGH" | "MEDIUM" | "LOW";
+  reasoning?: string;
   recommendedPayoutAmountBaseUnits?: string;
   evaluatedAt: number;
 };
