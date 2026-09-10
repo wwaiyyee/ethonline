@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useHederaWalletConnect } from "~~/services/web3/hederaWalletConnect";
-import { writeContractViaNativeProvider, waitForHederaTransaction } from "~~/services/web3/hederaContractWrite";
-import { POLICY_REGISTRY_ABI, getPolicyRegistryAddress } from "~~/contracts/policyRegistryAbi";
+import {
+  POLICY_REGISTRY_ABI,
+  getPolicyRegistryAddress,
+  getPolicyRegistryHederaContractId,
+} from "~~/contracts/policyRegistryAbi";
 import scaffoldConfig from "~~/scaffold.config";
+import { waitForHederaTransaction, writeContractViaNativeProvider } from "~~/services/web3/hederaContractWrite";
+import { useHederaWalletConnect } from "~~/services/web3/hederaWalletConnect";
 import { notification } from "~~/utils/scaffold-hbar";
 
 interface ApprovalControlsProps {
@@ -48,12 +52,17 @@ export function ApprovalControls({ claimId, policyId, onUpdate }: ApprovalContro
         throw new Error("Contract or provider not available");
       }
 
+      const hederaContractId = getPolicyRegistryHederaContractId(targetNetwork.id);
+      if (!hederaContractId) {
+        throw new Error("PolicyRegistry Hedera contract ID not found");
+      }
+
       const result = await writeContractViaNativeProvider({
         provider,
         hederaAccountId: accountId,
         chainId: targetNetwork.id,
         contractAddress: contractAddress,
-        hederaContractId: "0.0.10443942", // PolicyRegistry Hedera ID
+        hederaContractId: hederaContractId,
         abi: POLICY_REGISTRY_ABI,
         functionName: "resolvePolicy",
         fnArgs: [policyId as `0x${string}`, resolutionHash as `0x${string}`],
@@ -98,12 +107,17 @@ export function ApprovalControls({ claimId, policyId, onUpdate }: ApprovalContro
         throw new Error("Contract or provider not available");
       }
 
+      const hederaContractId = getPolicyRegistryHederaContractId(targetNetwork.id);
+      if (!hederaContractId) {
+        throw new Error("PolicyRegistry Hedera contract ID not found");
+      }
+
       const result = await writeContractViaNativeProvider({
         provider,
         hederaAccountId: accountId,
         chainId: targetNetwork.id,
         contractAddress: contractAddress,
-        hederaContractId: "0.0.10443942", // PolicyRegistry Hedera ID
+        hederaContractId: hederaContractId,
         abi: POLICY_REGISTRY_ABI,
         functionName: "resolvePolicy",
         fnArgs: [policyId as `0x${string}`, resolutionHash as `0x${string}`],
@@ -163,11 +177,7 @@ export function ApprovalControls({ claimId, policyId, onUpdate }: ApprovalContro
 
       {/* Action Buttons */}
       <div className="flex gap-3">
-        <button
-          className="btn btn-success flex-1"
-          onClick={handleApprove}
-          disabled={loading || !isConnected}
-        >
+        <button className="btn btn-success flex-1" onClick={handleApprove} disabled={loading || !isConnected}>
           {loading ? (
             <>
               <span className="loading loading-spinner loading-sm"></span>
@@ -183,11 +193,7 @@ export function ApprovalControls({ claimId, policyId, onUpdate }: ApprovalContro
           )}
         </button>
 
-        <button
-          className="btn btn-error flex-1"
-          onClick={handleReject}
-          disabled={loading || !isConnected}
-        >
+        <button className="btn btn-error flex-1" onClick={handleReject} disabled={loading || !isConnected}>
           {loading ? (
             <>
               <span className="loading loading-spinner loading-sm"></span>
@@ -205,9 +211,7 @@ export function ApprovalControls({ claimId, policyId, onUpdate }: ApprovalContro
       </div>
 
       {!isConnected && (
-        <div className="text-center text-sm text-base-content/70">
-          Connect your wallet to approve or reject claims
-        </div>
+        <div className="text-center text-sm text-base-content/70">Connect your wallet to approve or reject claims</div>
       )}
     </div>
   );
