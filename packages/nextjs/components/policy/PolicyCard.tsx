@@ -1,3 +1,5 @@
+import { getPolicyRegistryHederaContractId } from "~~/contracts/policyRegistryAbi";
+import scaffoldConfig from "~~/scaffold.config";
 import type { PolicyTerms } from "~~/services/policy/types";
 
 interface PolicyCardProps {
@@ -90,9 +92,7 @@ export function PolicyCard({ policy }: PolicyCardProps) {
           {/* Threshold */}
           <div className="flex justify-between items-center">
             <span className="text-sm text-base-content/70">Threshold:</span>
-            <span className="font-mono font-semibold">
-              {(policy.thresholdBps / 100).toFixed(2)}%
-            </span>
+            <span className="font-mono font-semibold">{(policy.thresholdBps / 100).toFixed(2)}%</span>
           </div>
 
           {/* Duration */}
@@ -112,9 +112,7 @@ export function PolicyCard({ policy }: PolicyCardProps) {
           {/* Evidence Budget */}
           <div className="flex justify-between items-center">
             <span className="text-sm text-base-content/70">Evidence Budget:</span>
-            <span className="font-mono text-sm">
-              {formatAmount(policy.maxEvidenceBudgetTinybar, 8)} HBAR
-            </span>
+            <span className="font-mono text-sm">{formatAmount(policy.maxEvidenceBudgetTinybar, 8)} HBAR</span>
           </div>
 
           <div className="divider my-2"></div>
@@ -171,7 +169,7 @@ export function PolicyCard({ policy }: PolicyCardProps) {
             </svg>
           </a>
           <a
-            href={`https://hashscan.io/testnet/contract/0.0.10443942`}
+            href={`https://hashscan.io/testnet/contract/${getPolicyRegistryHederaContractId(scaffoldConfig.targetNetworks[0].id)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-sm btn-primary"
@@ -182,7 +180,7 @@ export function PolicyCard({ policy }: PolicyCardProps) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                d="M10 6H6a2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
               />
             </svg>
           </a>
