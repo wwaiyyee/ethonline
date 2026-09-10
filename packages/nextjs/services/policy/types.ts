@@ -121,6 +121,8 @@ export type Claim = {
   claimId: string;
   policyId: string;
   status: ClaimStatus;
+  triggerWindowStart?: number;
+  triggerWindowEnd?: number;
   detectedAt: number;
   lowestPriceUsdMicros?: number;
   durationMinutes?: number;
