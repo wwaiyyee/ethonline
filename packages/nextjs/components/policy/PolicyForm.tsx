@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useHederaWalletConnect } from "~~/services/web3/hederaWalletConnect";
-import { writeContractViaNativeProvider, waitForHederaTransaction } from "~~/services/web3/hederaContractWrite";
-import { POLICY_REGISTRY_ABI, getPolicyRegistryAddress } from "~~/contracts/policyRegistryAbi";
+import {
+  POLICY_REGISTRY_ABI,
+  getPolicyRegistryAddress,
+  getPolicyRegistryHederaContractId,
+} from "~~/contracts/policyRegistryAbi";
 import scaffoldConfig from "~~/scaffold.config";
+import { waitForHederaTransaction, writeContractViaNativeProvider } from "~~/services/web3/hederaContractWrite";
+import { useHederaWalletConnect } from "~~/services/web3/hederaWalletConnect";
 import { notification } from "~~/utils/scaffold-hbar";
 
 interface PolicyFormProps {
@@ -88,13 +92,17 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
       console.log("Contract EVM address:", contractAddress);
       console.log("Network:", targetNetwork.name, targetNetwork.id);
 
-      // PolicyRegistry Hedera ID: 0.0.10443942
+      const hederaContractId = getPolicyRegistryHederaContractId(targetNetwork.id);
+      if (!hederaContractId) {
+        throw new Error("PolicyRegistry Hedera contract ID not found");
+      }
+
       const result = await writeContractViaNativeProvider({
         provider,
         hederaAccountId: accountId,
         chainId: targetNetwork.id,
         contractAddress: contractAddress,
-        hederaContractId: "0.0.10443942", // Use Hedera ID directly
+        hederaContractId: hederaContractId,
         abi: POLICY_REGISTRY_ABI,
         functionName: "createPolicy",
         fnArgs: [
@@ -169,12 +177,7 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
           <label className="label">
             <span className="label-text font-medium">Data Chain</span>
           </label>
-          <input
-            type="text"
-            value="Ethereum (Uniswap V3)"
-            className="input input-bordered bg-base-200"
-            disabled
-          />
+          <input type="text" value="Ethereum (Uniswap V3)" className="input input-bordered bg-base-200" disabled />
           <input type="hidden" name="dataChainId" value="ethereum" />
         </div>
 
