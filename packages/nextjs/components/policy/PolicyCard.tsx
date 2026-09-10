@@ -41,6 +41,36 @@ export function PolicyCard({ policy }: PolicyCardProps) {
     navigator.clipboard.writeText(text);
   };
 
+  // Get the appropriate block explorer based on the data chain
+  const getExplorerUrl = (address: string) => {
+    const chain = policy.dataChainId.toLowerCase();
+    const explorers: Record<string, string> = {
+      base: "https://basescan.org",
+      ethereum: "https://etherscan.io",
+      eth: "https://etherscan.io",
+      mainnet: "https://etherscan.io",
+      arbitrum: "https://arbiscan.io",
+      optimism: "https://optimistic.etherscan.io",
+      polygon: "https://polygonscan.com",
+    };
+    const explorerBase = explorers[chain] || "https://basescan.org"; // Default to Base
+    return `${explorerBase}/address/${address}`;
+  };
+
+  const getChainDisplayName = () => {
+    const chain = policy.dataChainId.toLowerCase();
+    const names: Record<string, string> = {
+      base: "Base",
+      ethereum: "Ethereum",
+      eth: "Ethereum",
+      mainnet: "Ethereum",
+      arbitrum: "Arbitrum",
+      optimism: "Optimism",
+      polygon: "Polygon",
+    };
+    return names[chain] || policy.dataChainId;
+  };
+
   return (
     <div className="card bg-base-100 border border-base-300 shadow-md hover:shadow-lg transition-shadow">
       <div className="card-body p-6">
@@ -125,12 +155,12 @@ export function PolicyCard({ policy }: PolicyCardProps) {
         {/* Footer */}
         <div className="card-actions justify-end mt-4">
           <a
-            href={`https://basescan.org/address/${policy.stablecoinAddress}`}
+            href={getExplorerUrl(policy.stablecoinAddress)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-sm btn-ghost"
           >
-            View Token on Base
+            View Token on {getChainDisplayName()}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
