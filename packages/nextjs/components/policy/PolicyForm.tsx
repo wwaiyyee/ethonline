@@ -26,10 +26,10 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
 
   const [formData, setFormData] = useState({
     policyholder: "",
-    dataChainId: "base",
+    dataChainId: "ethereum",
     stablecoinSymbol: "USDC",
-    stablecoinAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-    referencePoolAddress: "0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C",
+    stablecoinAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    referencePoolAddress: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
     thresholdBps: "9800",
     minimumDurationMinutes: "15",
     payoutAmountBaseUnits: "1000000000",
@@ -42,43 +42,11 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Preset addresses for different chains
-  const chainPresets: Record<string, { usdc: string; pool: string; poolName: string }> = {
-    base: {
-      usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-      pool: "0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C",
-      poolName: "USDC/WETH 0.05%",
-    },
-    ethereum: {
-      usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      pool: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
-      poolName: "USDC/WETH 0.05%",
-    },
-    polygon: {
-      usdc: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      pool: "0xA374094527e1673A86dE625aa59517c5dE346d32",
-      poolName: "USDC/WETH 0.05%",
-    },
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-
-    // Auto-fill addresses when chain changes
-    if (name === "dataChainId" && chainPresets[value]) {
-      const preset = chainPresets[value];
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        stablecoinAddress: preset.usdc,
-        referencePoolAddress: preset.pool,
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,23 +163,19 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
         />
       </div>
 
-      {/* Data Chain & Stablecoin */}
+      {/* Data Chain (fixed) & Stablecoin */}
       <div className="grid grid-cols-2 gap-4">
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">Data Chain *</span>
+            <span className="label-text font-medium">Data Chain</span>
           </label>
-          <select
-            name="dataChainId"
-            value={formData.dataChainId}
-            onChange={handleChange}
-            className="select select-bordered"
-            required
-          >
-            <option value="base">Base</option>
-            <option value="ethereum">Ethereum</option>
-            <option value="polygon">Polygon</option>
-          </select>
+          <input
+            type="text"
+            value="Ethereum (Uniswap V3)"
+            className="input input-bordered bg-base-200"
+            disabled
+          />
+          <input type="hidden" name="dataChainId" value="ethereum" />
         </div>
 
         <div className="form-control">
@@ -251,7 +215,7 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
       {/* Reference Pool Address */}
       <div className="form-control">
         <label className="label">
-          <span className="label-text font-medium">Uniswap Pool Address *</span>
+          <span className="label-text font-medium">Uniswap V3 Pool Address *</span>
         </label>
         <input
           type="text"
@@ -263,9 +227,7 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
           required
         />
         <label className="label">
-          <span className="label-text-alt">
-            Preset: {chainPresets[formData.dataChainId]?.poolName || "Custom"}
-          </span>
+          <span className="label-text-alt">Default: USDC/WETH 0.05% pool on Ethereum</span>
         </label>
       </div>
 
