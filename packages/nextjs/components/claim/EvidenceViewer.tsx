@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 
 interface EvidenceViewerProps {
-  claimId: string;
-  evidenceFileIds: string[];
+  fileIds: string[];
 }
 
 interface EvidenceData {
@@ -21,25 +20,28 @@ interface EvidenceData {
   };
 }
 
-export function EvidenceViewer({ claimId, evidenceFileIds }: EvidenceViewerProps) {
+export function EvidenceViewer({ fileIds }: EvidenceViewerProps) {
   const [evidence, setEvidence] = useState<EvidenceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchEvidence = async () => {
-    if (evidenceFileIds.length === 0) return;
+    if (fileIds.length === 0) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // For now, fetch from a hypothetical endpoint
-      // In production, this would fetch the actual purchased evidence
-      const response = await fetch(`/api/v1/depeg-evidence?claimId=${claimId}`);
+      // Fetch evidence file content - in production this would decrypt/download from x402
+      const fileId = fileIds[0]; // Use first file for now
+      const response = await fetch(`/api/files/${fileId}`);
 
       if (response.ok) {
         const data = await response.json();
-        setEvidence(data.report);
+        // Parse evidence data if it's stored
+        if (data.file && data.file.metadata) {
+          setEvidence(data.file.metadata as EvidenceData);
+        }
       } else {
         throw new Error("Failed to fetch evidence");
       }
@@ -53,7 +55,8 @@ export function EvidenceViewer({ claimId, evidenceFileIds }: EvidenceViewerProps
 
   useEffect(() => {
     fetchEvidence();
-  }, [claimId, evidenceFileIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileIds]);
 
   if (loading) {
     return (
@@ -161,7 +164,7 @@ export function EvidenceViewer({ claimId, evidenceFileIds }: EvidenceViewerProps
       <div>
         <div className="text-sm font-semibold mb-2">Evidence Files</div>
         <div className="space-y-1">
-          {evidenceFileIds.map((fileId, index) => (
+          {fileIds.map((fileId, index) => (
             <div key={index} className="bg-base-200 rounded px-3 py-2 text-xs font-mono">
               {fileId}
             </div>

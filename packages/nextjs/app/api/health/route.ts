@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "~~/services/db/client";
-import { getGraphConfig, GraphConfigurationError } from "~~/services/graph/config";
+import { GraphConfigurationError, getGraphConfig } from "~~/services/graph/config";
 import { FACILITATOR_URL, X402_NETWORK } from "~~/services/x402/server";
 
 export const runtime = "nodejs";
@@ -20,16 +20,21 @@ export async function GET() {
 
   try {
     getDb().prepare("SELECT 1").get();
-  } catch (error) {
-    return NextResponse.json({ status: "degraded", graph, x402: { network: X402_NETWORK, facilitator: FACILITATOR_URL } }, { status: 503 });
+  } catch {
+    return NextResponse.json(
+      { status: "degraded", graph, x402: { network: X402_NETWORK, facilitator: FACILITATOR_URL } },
+      { status: 503 },
+    );
   }
 
-  return NextResponse.json({
-    status: graph.configured ? "ok" : "degraded",
-    service: "edgraph-evidence-api",
-    graph,
-    x402: { network: X402_NETWORK, facilitator: FACILITATOR_URL },
-    timestamp: new Date().toISOString(),
-  }, { status: graph.configured ? 200 : 503 });
+  return NextResponse.json(
+    {
+      status: graph.configured ? "ok" : "degraded",
+      service: "edgraph-evidence-api",
+      graph,
+      x402: { network: X402_NETWORK, facilitator: FACILITATOR_URL },
+      timestamp: new Date().toISOString(),
+    },
+    { status: graph.configured ? 200 : 503 },
+  );
 }
-
