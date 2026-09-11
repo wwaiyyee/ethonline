@@ -102,11 +102,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
         <div className="mb-4 pb-4 border-b border-base-300">
           <div className="text-xs text-base-content/60 mb-1">Policy ID:</div>
           <div
-            className="text-sm font-mono bg-base-200 px-3 py-1.5 rounded cursor-pointer hover:bg-base-300 transition-colors inline-block"
+            className="text-sm font-mono bg-base-200 px-3 py-1.5 rounded cursor-pointer hover:bg-base-300 transition-colors inline-block break-all"
             onClick={() => copyToClipboard(claim.policyId)}
             title="Click to copy"
           >
-            {claim.policyId.slice(0, 20)}...{claim.policyId.slice(-8)}
+            {claim.policyId}
           </div>
         </div>
 
