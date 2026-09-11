@@ -155,10 +155,14 @@ export async function queryPoolData(
     }))
     .filter(sample => Number.isFinite(sample.priceUsd) && sample.priceUsd > 0);
 
-  const currentPoolPrice =
-    pool.token0.id.toLowerCase() === config.stablecoinAddress
-      ? Number(pool.token0Price) * quoteTokenUsdPrice
-      : Number(pool.token1Price) * quoteTokenUsdPrice;
+  const currentToken1PerToken0 = Number(pool.token1Price);
+  const currentPoolPrice = stablePriceFromToken1PerToken0(
+    currentToken1PerToken0,
+    pool.token0,
+    pool.token1,
+    config,
+    quoteTokenUsdPrice,
+  );
 
   if (!Number.isFinite(currentPoolPrice) || currentPoolPrice <= 0) {
     throw new Error("The Graph returned an invalid current pool price.");

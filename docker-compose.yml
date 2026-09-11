@@ -46,5 +46,26 @@ services:
       HEDERA_NODE_URL: ${HEDERA_NODE_URL:-}
     restart: unless-stopped
 
+  edgraph-monitor:
+    build:
+      context: .
+      dockerfile: ./packages/nextjs/Dockerfile.monitor
+    environment:
+      EDGRAPH_DB_PATH: ${EDGRAPH_DB_PATH:-/data/edgraph.sqlite}
+      EDGRAPH_GRAPH_ENDPOINT: ${EDGRAPH_GRAPH_ENDPOINT}
+      EDGRAPH_GRAPH_SUBGRAPH_ID: ${EDGRAPH_GRAPH_SUBGRAPH_ID}
+      EDGRAPH_GRAPH_API_KEY: ${EDGRAPH_GRAPH_API_KEY}
+      EDGRAPH_GRAPH_POOL_ADDRESS: ${EDGRAPH_GRAPH_POOL_ADDRESS}
+      EDGRAPH_STABLECOIN_ADDRESS: ${EDGRAPH_STABLECOIN_ADDRESS}
+      EDGRAPH_STABLECOIN_SYMBOL: ${EDGRAPH_STABLECOIN_SYMBOL}
+      EDGRAPH_QUOTE_TOKEN_ADDRESS: ${EDGRAPH_QUOTE_TOKEN_ADDRESS}
+      EDGRAPH_QUOTE_TOKEN_SYMBOL: ${EDGRAPH_QUOTE_TOKEN_SYMBOL}
+      EDGRAPH_QUOTE_TOKEN_USD_PRICE: ${EDGRAPH_QUOTE_TOKEN_USD_PRICE}
+      EDGRAPH_MONITOR_INTERVAL_MS: ${EDGRAPH_MONITOR_INTERVAL_MS:-60000}
+    volumes:
+      - edgraph-data:/data
+    restart: unless-stopped
+
 volumes:
   minio-data:
+  edgraph-data:

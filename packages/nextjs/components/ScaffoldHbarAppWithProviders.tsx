@@ -8,6 +8,7 @@ import { WagmiProvider } from "wagmi";
 import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
 import { LocalChainErrorBanner } from "~~/components/LocalChainErrorBanner";
+import { WalletDebugInfo } from "~~/components/WalletDebugInfo";
 import { HederaWalletConnectProvider } from "~~/services/web3/hederaWalletConnect";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
@@ -21,6 +22,7 @@ const ScaffoldHbarApp = ({ children }: { children: React.ReactNode }) => {
         <Footer />
       </div>
       <Toaster />
+      <WalletDebugInfo />
     </>
   );
 };

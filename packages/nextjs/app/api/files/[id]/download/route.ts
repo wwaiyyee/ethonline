@@ -66,11 +66,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   // Private files are gated behind a fresh x402 payment.
+  console.log("[api/files/download] private file - fileId:", id);
   const { context, resourceUrl } = makeHttpContext(req);
+  console.log("[api/files/download] paymentHeader present:", !!context.paymentHeader);
+  console.log("[api/files/download] resourceUrl:", resourceUrl);
 
   let server;
   try {
     server = await getResourceServer();
+    console.log(
+      "[api/files/download] server initialized, methods:",
+      Object.getOwnPropertyNames(Object.getPrototypeOf(server)),
+    );
   } catch (error) {
     console.error("[api/files/download] facilitator unavailable", error);
     return NextResponse.json({ error: "Payment facilitator unavailable" }, { status: 502 });
@@ -104,17 +111,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   let payload;
   try {
     payload = decodePaymentSignatureHeader(context.paymentHeader);
-  } catch {
+  } catch (error) {
+    console.error("[api/files/download] decode failed:", error);
     return paymentRequired(server, requirements, resourceInfo, "Malformed payment header");
   }
 
   const matched = server.findMatchingRequirements(requirements, payload);
   if (!matched) {
+    console.error("[api/files/download] payment does not match requirements");
     return paymentRequired(server, requirements, resourceInfo, "Payment does not match requirements");
   }
 
   // Verify the payment is valid before doing any work.
-  const verification = await server.verifyPayment(payload, matched);
+  let verification;
+  try {
+    verification = await server.verifyPayment(payload, matched);
+  } catch (error) {
+    console.error("[api/files/download] verifyPayment threw error:", error);
+    return NextResponse.json({ error: "Payment verification failed", details: String(error) }, { status: 500 });
+  }
+
   if (!verification.isValid) {
     const reason =
       ("invalidMessage" in verification && typeof verification.invalidMessage === "string"
@@ -122,12 +138,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         : undefined) ??
       verification.invalidReason ??
       "Payment is not valid";
-    console.error("[api/files/download] payment verify failed", verification);
+    console.error("[api/files/download] payment verify failed:", reason);
     return paymentRequired(server, requirements, resourceInfo, reason);
   }
 
   // Settle (broadcast) the payment. Only deliver the file once funds are captured.
-  const settlement = await server.settlePayment(payload, matched);
+  console.log("[api/files/download] settling payment...");
+  let settlement;
+  try {
+    settlement = await server.settlePayment(payload, matched);
+    console.log("[api/files/download] settlement result:", settlement);
+  } catch (error) {
+    console.error("[api/files/download] settlePayment threw error:", error);
+    return NextResponse.json({ error: "Payment settlement failed", details: String(error) }, { status: 500 });
+  }
+
   if (!settlement.success) {
     return NextResponse.json({ error: "Payment settlement failed", reason: settlement.errorReason }, { status: 402 });
   }

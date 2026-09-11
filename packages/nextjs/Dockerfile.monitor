@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy root package files and workspace config
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn
+
+# Copy workspace package files
+COPY packages/hardhat/package.json ./packages/hardhat/
+COPY packages/nextjs/package.json ./packages/nextjs/
+
+# Install all dependencies (monorepo)
+RUN yarn install --frozen-lockfile
+
+# Copy nextjs source code
+COPY packages/nextjs ./packages/nextjs/
+
+# Set working directory to nextjs package
+WORKDIR /app/packages/nextjs
+
+# Run the monitoring worker
+CMD ["yarn", "edgraph:monitor"]

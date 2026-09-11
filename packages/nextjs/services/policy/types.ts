@@ -3,7 +3,13 @@ export const EDGRAPH_DATA_CHAIN = "base" as const;
 export type EdGraphDataChain = typeof EDGRAPH_DATA_CHAIN;
 
 /** Values used by the deterministic policy engine and persisted in claims. */
-export type DecisionOutcome = "ELIGIBLE_RECOMMENDATION" | "INELIGIBLE" | "NEEDS_HUMAN_REVIEW";
+export type DecisionOutcome =
+  | "ELIGIBLE"
+  | "ELIGIBLE_RECOMMENDATION"
+  | "INELIGIBLE_RECOMMENDATION"
+  | "INELIGIBLE"
+  | "NEEDS_REVIEW"
+  | "NEEDS_HUMAN_REVIEW";
 
 export type ClaimStatus =
   | "POTENTIAL_CLAIM"
@@ -13,7 +19,7 @@ export type ClaimStatus =
   | "APPROVED"
   | "REJECTED";
 
-export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED";
+export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED" | string;
 
 /**
  * Terms committed by PolicyRegistry. Monetary values are strings so a value
@@ -77,6 +83,61 @@ export type EvidenceReport = {
 export type PolicyDecision = {
   outcome: DecisionOutcome;
   reasons: string[];
+  confidence?: "HIGH" | "MEDIUM" | "LOW";
+  reasoning?: string;
   recommendedPayoutAmountBaseUnits?: string;
   evaluatedAt: number;
+};
+
+/**
+ * Evidence purchased from x402 resource server.
+ * `fileId` is the x402 FileRegistry file id (bytes32 hex).
+ * `localPath` is where the evidence JSON was saved after download.
+ * `amountPaidTinybar` is the x402 price paid (native HBAR).
+ */
+export type PurchasedEvidence = {
+  fileId: string;
+  objectKey: string;
+  localPath: string;
+  amountPaidTinybar: string;
+  purchasedAt: number;
+  contentHash: string;
+};
+
+/**
+ * Hedera payment proof for x402 evidence purchases.
+ * `transactionId` is the settled Hedera transfer transaction (e.g. "0.0.1234@1234567890.123456789").
+ * `payerAccountId` is the policy agent's funded account (e.g. "0.0.5678").
+ * `recipientAccountId` is the evidence seller's account (matched against FileRegistry `payToAccountId`).
+ */
+export type PaymentProof = {
+  transactionId: string;
+  payerAccountId: string;
+  recipientAccountId: string;
+  amountTinybar: string;
+  timestamp: number;
+  memo?: string;
+};
+
+/**
+ * Claim record combining policy, observations, decision, evidence, and status.
+ * Persisted in SQLite and drives the UI claim lifecycle.
+ */
+export type Claim = {
+  claimId: string;
+  policyId: string;
+  status: ClaimStatus;
+  triggerWindowStart?: number;
+  triggerWindowEnd?: number;
+  detectedAt: number;
+  lowestPriceUsdMicros?: number;
+  durationMinutes?: number;
+  decision?: PolicyDecision;
+  evidenceFileIds?: string[];
+  lastAgentAction?: AgentAction;
+  lastAgentActionAt?: number;
+  resolutionTransactionId?: string;
+  approvedAt?: number;
+  rejectedAt?: number;
+  notes?: string;
 };

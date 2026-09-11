@@ -4,14 +4,14 @@ import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpTrayIcon, Bars3Icon, ChartBarIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, ChartBarIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 import { WalletConnectButton } from "~~/components/scaffold-hbar";
 import { useOutsideClick } from "~~/hooks/scaffold-hbar";
 
 type HeaderMenuLink = {
   label: string;
   href: string;
-  icon?: React.ReactNode;
 };
 
 export const menuLinks: HeaderMenuLink[] = [
@@ -20,9 +20,8 @@ export const menuLinks: HeaderMenuLink[] = [
     href: "/",
   },
   {
-    label: "Marketplace",
-    href: "/files",
-    icon: <ShoppingBagIcon className="h-4 w-4" />,
+    label: "Policies",
+    href: "/policies",
   },
   {
     label: "EdGraph",
@@ -30,9 +29,8 @@ export const menuLinks: HeaderMenuLink[] = [
     icon: <ChartBarIcon className="h-4 w-4" />,
   },
   {
-    label: "Upload",
-    href: "/files/upload",
-    icon: <ArrowUpTrayIcon className="h-4 w-4" />,
+    label: "Claims",
+    href: "/claims",
   },
 ];
 
@@ -41,7 +39,7 @@ export const HeaderMenuLinks = () => {
 
   return (
     <>
-      {menuLinks.map(({ label, href, icon }) => {
+      {menuLinks.map(({ label, href }) => {
         const isActive = pathname === href;
         return (
           <li key={href}>
@@ -50,9 +48,8 @@ export const HeaderMenuLinks = () => {
               passHref
               className={`${
                 isActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-primary/5"
-              } py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col transition-colors`}
+              } py-1.5 px-3 text-sm rounded-full transition-colors`}
             >
-              {icon}
               <span>{label}</span>
             </Link>
           </li>
@@ -95,7 +92,7 @@ export const Header = () => {
           <div className="flex flex-col">
             <span className="font-bold leading-tight text-base">EdGraph</span>
             <span className="text-[10px] tracking-wider uppercase text-base-content/50 font-medium">
-              Coverage operations
+              Coverage operations on Hedera
             </span>
           </div>
         </Link>
