@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getPolicy } from "~~/services/policy/repository";
 import { queryPoolRiskSnapshot } from "~~/services/graph/agentTool";
 import { upsertObservation } from "~~/services/observations/repository";
+import { getPolicy } from "~~/services/policy/repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +23,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ...snapshot, observation });
   } catch (error) {
     console.error("[api/graph/snapshot] live query failed", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Live Graph query failed." }, { status: 502 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Live Graph query failed." },
+      { status: 502 },
+    );
   }
 }
-

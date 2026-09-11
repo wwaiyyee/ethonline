@@ -53,6 +53,7 @@ export function EvidenceViewer({ claimId, evidenceFileIds }: EvidenceViewerProps
 
   useEffect(() => {
     fetchEvidence();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claimId, evidenceFileIds]);
 
   if (loading) {

@@ -25,14 +25,16 @@ export async function GET() {
           FROM observations
           WHERE policy_id = ?
           ORDER BY observed_at DESC
-          LIMIT 1`
+          LIMIT 1`,
         )
-        .get(policy.policyId) as {
-          priceUsdMicros: number;
-          liquidityUsdMicros: number;
-          sourceName: string;
-          sourceBlock: number | null;
-        } | undefined;
+        .get(policy.policyId) as
+        | {
+            priceUsdMicros: number;
+            liquidityUsdMicros: number;
+            sourceName: string;
+            sourceBlock: number | null;
+          }
+        | undefined;
 
       return {
         policy: {
@@ -55,9 +57,6 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 503 });
     }
     console.error("[api/edgraph] Failed to fetch dashboard data", error);
-    return NextResponse.json(
-      { error: "Failed to fetch dashboard data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch dashboard data" }, { status: 500 });
   }
 }

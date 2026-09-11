@@ -16,6 +16,7 @@ export function WalletDebugInfo() {
       hasHederaSession: walletState.hasHederaSession,
       provider: walletState.provider ? "exists" : "null",
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletState.isConnected, walletState.accountId, walletState.isInitializing]);
 
   return (

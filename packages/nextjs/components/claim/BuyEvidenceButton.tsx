@@ -22,7 +22,6 @@ export function BuyEvidenceButton({ claimId, onPurchased }: BuyEvidenceButtonPro
       if (response.status === 402) {
         // Parse payment requirements
         const paymentRequired = await response.json();
-        const paymentHeader = response.headers.get("PAYMENT-REQUIRED");
 
         // For now, show payment requirements to user
         // In production, this would trigger HashPack payment flow
