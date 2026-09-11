@@ -1,16 +1,20 @@
 const path = require("path");
 
-const buildNextEslintCommand = (filenames) =>
-  `cd packages/nextjs && yarn eslint --fix ${filenames
-    .map((f) => path.relative(path.join("packages", "nextjs"), f).replace(/\\/g, "/"))
-    .join(" ")}`;
+const buildNextEslintCommand = (filenames) => {
+  const relativeFiles = filenames
+    .map((f) => path.relative("packages/nextjs", f).replace(/\\/g, "/"))
+    .join(" ");
+  return `sh -c "cd packages/nextjs && ./node_modules/.bin/next lint --fix --file ${relativeFiles}"`;
+};
 
 const checkTypesNextCommand = () => "yarn next:check-types";
 
-const buildHardhatEslintCommand = (filenames) =>
-  `yarn hardhat:lint-staged --fix ${filenames
-    .map((f) => path.relative(path.join("packages", "hardhat"), f).replace(/\\/g, "/"))
-    .join(" ")}`;
+const buildHardhatEslintCommand = (filenames) => {
+  const relativeFiles = filenames
+    .map((f) => path.relative("packages/hardhat", f).replace(/\\/g, "/"))
+    .join(" ");
+  return `yarn hardhat:lint-staged --fix ${relativeFiles}`;
+};
 
 module.exports = {
   "packages/nextjs/**/*.{ts,tsx}": [
