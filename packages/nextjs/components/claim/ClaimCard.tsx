@@ -12,7 +12,8 @@ interface ClaimCardProps {
 export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp: number | null | undefined) => {
+    if (timestamp == null) return "Pending";
     return new Date(timestamp * 1000).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
@@ -21,7 +22,8 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
     });
   };
 
-  const formatPrice = (priceMicros: number) => {
+  const formatPrice = (priceMicros: number | null | undefined) => {
+    if (priceMicros == null) return "Pending";
     return `$${(priceMicros / 1_000_000).toFixed(4)}`;
   };
 
@@ -117,7 +119,7 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
           <div className="bg-base-200 rounded-lg p-3">
             <div className="text-xs text-base-content/60 mb-1">Duration</div>
-            <div className="text-lg font-bold">{claim.durationMinutes} min</div>
+            <div className="text-lg font-bold">{claim.durationMinutes ?? "—"} min</div>
           </div>
 
           <div className="bg-base-200 rounded-lg p-3">
