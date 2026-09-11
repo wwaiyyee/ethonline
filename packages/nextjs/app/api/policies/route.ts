@@ -23,13 +23,16 @@ export async function GET(req: Request) {
     );
   }
   try {
+    console.log("[api/policies] Fetching policies with offset", offset, "limit", limit);
     const result = await listPoliciesFromHedera(offset, limit);
+    console.log("[api/policies] Got", result.policies.length, "policies, total", result.total);
     result.policies.forEach(upsertPolicy);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof PolicyRegistryNotDeployedError)
       return NextResponse.json({ error: error.message }, { status: 503 });
     console.error("[api/policies] read failed", error);
+    console.error("[api/policies] error details:", error instanceof Error ? error.stack : String(error));
     return NextResponse.json({ error: "Failed to read policies" }, { status: 502 });
   }
 }
