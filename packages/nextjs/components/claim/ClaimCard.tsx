@@ -86,11 +86,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
               <div>
                 <h3 className="text-lg font-bold">Depeg Detection</h3>
                 <div
-                  className="text-xs text-base-content/60 font-mono cursor-pointer hover:text-base-content/80"
+                  className="text-xs text-base-content/60 font-mono cursor-pointer hover:text-base-content/80 break-all"
                   onClick={() => copyToClipboard(claim.claimId)}
                   title="Click to copy"
                 >
-                  {claim.claimId.slice(0, 24)}...
+                  {claim.claimId}
                 </div>
               </div>
             </div>
@@ -124,7 +124,7 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
           <div className="bg-base-200 rounded-lg p-3">
             <div className="text-xs text-base-content/60 mb-1">Detected At</div>
-            <div className="text-sm font-mono">{formatDate(claim.detectedAt)}</div>
+            <div className="text-sm font-mono">{formatDate(claim.createdAt)}</div>
           </div>
 
           <div className="bg-base-200 rounded-lg p-3">
