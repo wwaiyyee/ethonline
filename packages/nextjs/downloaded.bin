@@ -1,0 +1,93 @@
+{
+  "claimId": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "claimant": "0xAcme0DAOTreasury00000000000000000000000",
+  "policyId": "0xpolicy123456789abcdef",
+  "eventType": "USDC_DEPEG",
+  "timestamp": "2024-09-10T14:30:00Z",
+
+  "depegDetails": {
+    "stablecoin": "USDC",
+    "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "chain": "ethereum",
+    "poolAddress": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+    "poolName": "USDC/WETH 0.05%",
+
+    "priceData": {
+      "normalPrice": 1.0000,
+      "lowestObservedPrice": 0.9750,
+      "deviationBps": 250,
+      "thresholdBps": 200,
+      "thresholdBreached": true
+    },
+
+    "durationData": {
+      "eventStartTime": "2024-09-10T14:15:00Z",
+      "eventEndTime": "2024-09-10T14:45:00Z",
+      "durationMinutes": 30,
+      "minimumRequiredMinutes": 15,
+      "requirementMet": true
+    },
+
+    "observations": [
+      {
+        "timestamp": "2024-09-10T14:15:00Z",
+        "price": 0.9980,
+        "blockNumber": 18500000
+      },
+      {
+        "timestamp": "2024-09-10T14:20:00Z",
+        "price": 0.9750,
+        "blockNumber": 18500060
+      },
+      {
+        "timestamp": "2024-09-10T14:25:00Z",
+        "price": 0.9760,
+        "blockNumber": 18500120
+      },
+      {
+        "timestamp": "2024-09-10T14:30:00Z",
+        "price": 0.9780,
+        "blockNumber": 18500180
+      },
+      {
+        "timestamp": "2024-09-10T14:45:00Z",
+        "price": 0.9950,
+        "blockNumber": 18500240
+      }
+    ]
+  },
+
+  "dataProvenance": {
+    "source": "Uniswap V3 Subgraph",
+    "endpoint": "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
+    "queryHash": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+    "verificationMethod": "On-chain swap events",
+    "attestation": "Data verified via The Graph protocol"
+  },
+
+  "supportingDocuments": [
+    "price-chart-screenshot.png",
+    "blockchain-transactions.csv",
+    "liquidity-analysis.pdf"
+  ],
+
+  "claimSummary": {
+    "depegVerified": true,
+    "qualifiesForPayout": true,
+    "payoutAmount": "10 HBAR",
+    "evidence": [
+      "USDC depegged to $0.9750 on Ethereum mainnet",
+      "Price remained below $0.98 threshold for 30 minutes",
+      "Exceeds minimum required duration of 15 minutes",
+      "Observed across 5 data points from Uniswap V3 pool",
+      "All criteria met per policy terms"
+    ]
+  },
+
+  "metadata": {
+    "generatedBy": "EdGraph Evidence Engine v1.0",
+    "generatedAt": "2024-09-10T15:00:00Z",
+    "format": "application/json",
+    "schemaVersion": "1.0.0"
+  }
+}

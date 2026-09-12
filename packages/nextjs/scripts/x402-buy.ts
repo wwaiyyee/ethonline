@@ -37,7 +37,12 @@ async function main() {
 
   const privateKey = PrivateKey.fromStringECDSA(privateKeyStr);
   const signer = createClientHederaSigner(accountId, privateKey, { network });
-  const client = new x402Client().register(network, new ExactHederaScheme(signer));
+
+  console.log(`[x402-buy] Using network: ${network}`);
+
+  // Match the browser client pattern - no constructor options, just register the scheme
+  // Then explicitly disable spend controls with setSpendControls(false)
+  const client = new x402Client().register(network, new ExactHederaScheme(signer)).setSpendControls(false);
   const httpClient = new x402HTTPClient(client);
 
   console.log(`[x402-buy] GET ${resourceUrl}`);
@@ -56,20 +61,31 @@ async function main() {
       .clone()
       .json()
       .catch(() => undefined);
+
+    console.log("[x402-buy] Challenge body:", JSON.stringify(challengeBody, null, 2));
+
     const paymentRequired = httpClient.getPaymentRequiredResponse(name => first.headers.get(name), challengeBody);
+    console.log("[x402-buy] Payment required:", JSON.stringify(paymentRequired, null, 2));
+
     const payload = await httpClient.createPaymentPayload(paymentRequired);
     const headers = httpClient.encodePaymentSignatureHeader(payload);
 
     console.log("[x402-buy] Retrying with PAYMENT-SIGNATURE…");
     const paid = await fetch(resourceUrl, { headers });
-    const result = await httpClient.processResponse(paid);
+    console.log(`[x402-buy] Second response status: ${paid.status}`);
 
-    if (result.kind !== "success") {
-      throw new Error(`Payment failed: ${result.kind}`);
+    const result = await httpClient.processResponse(paid);
+    console.log(`[x402-buy] Payment status: ${result.paymentStatus}`);
+
+    if (result.paymentStatus !== "settled") {
+      throw new Error(`Payment failed with status: ${result.paymentStatus}`);
     }
-    const body = result.body as { url?: string };
+
+    const body = result.body as { url?: string; payment?: { transaction?: string } };
     if (!body.url) throw new Error("Payment succeeded but no download URL was returned");
-    console.log(`[x402-buy] Settled · tx ${result.settleResponse.transaction}`);
+
+    const txId = body.payment?.transaction || result.header?.transaction || "unknown";
+    console.log(`[x402-buy] Settled · tx ${txId}`);
     downloadUrl = body.url;
   } else {
     const body = await first.text();
