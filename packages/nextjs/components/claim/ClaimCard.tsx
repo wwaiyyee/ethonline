@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ApprovalControls } from "./ApprovalControls";
 import { BuyEvidenceButton } from "./BuyEvidenceButton";
-import { EvidenceViewer } from "./EvidenceViewer";
 import type { Claim } from "~~/services/policy/types";
 
 interface ClaimCardProps {
@@ -33,8 +32,8 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
       INVESTIGATING: "badge-warning",
       EVIDENCE_COLLECTED: "badge-primary",
       EVIDENCE_READY: "badge-primary",
-      ELIGIBLE_RECOMMENDATION: "badge-success",
-      INELIGIBLE_RECOMMENDATION: "badge-error",
+      ELIGIBLE: "badge-success",
+      INELIGIBLE: "badge-error",
       NEEDS_REVIEW: "badge-warning",
       APPROVED: "badge-success",
       REJECTED: "badge-error",
@@ -51,25 +50,26 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
   const getStatusIcon = (status: string) => {
     const icons: Record<string, string> = {
-      POTENTIAL_CLAIM: "🔍",
-      INVESTIGATING: "🔎",
-      EVIDENCE_COLLECTED: "📦",
-      EVIDENCE_READY: "✅",
-      ELIGIBLE_RECOMMENDATION: "👍",
-      INELIGIBLE_RECOMMENDATION: "👎",
-      NEEDS_REVIEW: "⚠️",
-      APPROVED: "✓",
-      REJECTED: "✗",
+      POTENTIAL_CLAIM: "?",
+      INVESTIGATING: "...",
+      EVIDENCE_COLLECTED: "[pkg]",
+      EVIDENCE_READY: "[ok]",
+      ELIGIBLE: "[+]",
+      INELIGIBLE: "[-]",
+      NEEDS_REVIEW: "[!]",
+      APPROVED: "[v]",
+      REJECTED: "[x]",
     };
     return icons[status] || "•";
   };
 
   const hasEvidence = claim.evidenceFileIds && claim.evidenceFileIds.length > 0;
-  const needsApproval =
-    claim.status === "ELIGIBLE_RECOMMENDATION" ||
-    claim.status === "INELIGIBLE_RECOMMENDATION" ||
+  const needsApproval = claim.status === "ELIGIBLE" || claim.status === "INELIGIBLE" || claim.status === "NEEDS_REVIEW";
+  const hasDecision =
+    claim.agentAction ||
+    claim.status === "ELIGIBLE" ||
+    claim.status === "INELIGIBLE" ||
     claim.status === "NEEDS_REVIEW";
-  const hasDecision = claim.decision && claim.decision.outcome;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -185,17 +185,24 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
                   </div>
                 )}
 
+                {hasDecision && (
+                  <div>
+                    <div className="text-xs text-base-content/60 mb-1">Agent Decision:</div>
+                    <div className="bg-base-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`badge badge-lg ${getStatusColor(claim.status)}`}>{claim.status}</span>
+                      </div>
+                      {claim.agentRationale && (
+                        <div className="text-sm text-base-content/80 leading-relaxed">{claim.agentRationale}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {claim.notes && (
                   <div>
                     <div className="text-xs text-base-content/60 mb-1">Notes:</div>
                     <div className="text-sm bg-base-200 px-3 py-2 rounded leading-relaxed">{claim.notes}</div>
-                  </div>
-                )}
-
-                {hasEvidence && (
-                  <div>
-                    <div className="text-xs text-base-content/60 mb-1">Evidence Files:</div>
-                    <EvidenceViewer fileIds={claim.evidenceFileIds || []} />
                   </div>
                 )}
               </div>

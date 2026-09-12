@@ -3,18 +3,17 @@ import { x402Client, x402HTTPClient } from "@x402/core/client";
 import type { Network } from "@x402/core/types";
 import { createClientHederaSigner } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
-import { ensureClaim, updateClaimAgentDecision } from "~~/services/claims/repository";
-import { queryPoolRiskSnapshot, shouldBuyEvidence, type PoolRiskSnapshot } from "~~/services/graph/agentTool";
-import { getPolicy } from "~~/services/policy/repository";
+import { evaluateClaimWithAI } from "~~/services/ai/claimEvaluation";
+import { assessRiskWithAI } from "~~/services/ai/riskAssessment";
+import { ensureClaim, updateClaimAgentDecision, updateClaimWithEvaluation } from "~~/services/claims/repository";
 import { canSpendEvidence, getEvidencePriceTinybar } from "~~/services/claims/spendPolicy";
+import { type PoolRiskSnapshot, queryPoolRiskSnapshot } from "~~/services/graph/agentTool";
+import { getPolicy } from "~~/services/policy/repository";
 import type { EvidenceReport, PolicyDecision, PolicyTerms } from "~~/services/policy/types";
 
 type EvidenceResponse = {
-  service: string;
   claimId: string;
-  policyId: string;
-  evidence: EvidenceReport;
-  policyDecision: PolicyDecision;
+  report: EvidenceReport;
   payment?: { transaction?: string; payer?: string; network?: string };
 };
 
@@ -25,6 +24,7 @@ export type ClaimsAgentResult = {
   action: "BUY_EVIDENCE" | "SKIP_EVIDENCE";
   rationale: string;
   evidence?: EvidenceResponse;
+  policyDecision?: PolicyDecision;
   settlement?: { transaction?: string; payer?: string; network?: string };
 };
 
@@ -40,26 +40,58 @@ function makeEvidenceUrl(): string {
 }
 
 /**
- * Run the claims-agent workflow. This module is server/CLI-only because it
- * loads an ECDSA private key to authorize the x402 HBAR transfer.
+ * Run the claims-agent workflow: snapshot → decide → pay → evidence → evaluate
+ *
+ * This orchestrates the full autonomous claims process:
+ * 1. Query live Graph snapshot (price, liquidity, volume)
+ * 2. Decide whether to buy evidence based on risk indicators
+ * 3. Pay for evidence via x402 HBAR payment (if justified)
+ * 4. Receive cryptographic evidence report
+ * 5. Evaluate evidence against policy terms
+ * 6. Store decision in database
+ *
+ * Server/CLI-only: loads ECDSA private key to authorize HBAR transfers.
  */
 export async function runClaimsAgent(input: { policyId: string; claimId?: string }): Promise<ClaimsAgentResult> {
   const policy = getPolicy(input.policyId);
   if (!policy) throw new Error(`Policy ${input.policyId} is not mirrored in the EdGraph database.`);
 
-  const claimId = input.claimId || `claim-${policy.policyId}`;
-  ensureClaim(claimId, policy);
-  const snapshot = await queryPoolRiskSnapshot(policy.policyId);
-  const trigger = shouldBuyEvidence(snapshot, policy);
-  const spend = canSpendEvidence({ policy, requestedTinybar: getEvidencePriceTinybar() });
+  const claimId = input.claimId || `claim-${policy.policyId}-${Date.now()}`;
 
-  if (!trigger.buy || !spend.allowed) {
-    const rationale = trigger.buy ? `${trigger.rationale} ${spend.rationale}` : trigger.rationale;
-    updateClaimAgentDecision(claimId, "SKIP_EVIDENCE", rationale);
-    return { policy, claimId, snapshot, action: "SKIP_EVIDENCE", rationale };
+  console.log(`[Agent] Starting claims workflow for policy ${policy.policyId}`);
+  console.log(`[Agent] Claim ID: ${claimId}`);
+
+  // Step 1: Initialize claim record
+  ensureClaim(claimId, policy);
+
+  // Step 2: Query live Graph snapshot
+  console.log(`[Agent] Querying live Graph snapshot for ${policy.stablecoinSymbol}...`);
+  const snapshot = await queryPoolRiskSnapshot(policy.policyId);
+  console.log(`[Agent] Snapshot: price=$${(snapshot.currentPriceUsdMicros / 1_000_000).toFixed(6)} USD`);
+  console.log(`[Agent] Price movement: ${snapshot.recentPriceMovementBps} bps`);
+  console.log(`[Agent] Liquidity change: ${snapshot.liquidityChangeBps} bps`);
+
+  // Step 3: AI-powered risk assessment
+  console.log(`[Agent] Running AI risk assessment...`);
+  const spend = canSpendEvidence({ policy, requestedTinybar: getEvidencePriceTinybar() });
+  const aiDecision = await assessRiskWithAI(snapshot, policy, spend.remainingTinybar);
+
+  console.log(`[Agent] AI Decision: ${aiDecision.buyEvidence ? "BUY_EVIDENCE" : "SKIP_EVIDENCE"}`);
+  console.log(`[Agent] Risk Level: ${aiDecision.riskLevel}`);
+  console.log(`[Agent] Confidence: ${aiDecision.confidence}%`);
+  console.log(`[Agent] Rationale: ${aiDecision.rationale}`);
+
+  if (!aiDecision.buyEvidence) {
+    updateClaimAgentDecision(claimId, "SKIP_EVIDENCE", aiDecision.rationale);
+    console.log(`[Agent] Action: SKIP_EVIDENCE`);
+    return { policy, claimId, snapshot, action: "SKIP_EVIDENCE", rationale: aiDecision.rationale };
   }
 
-  updateClaimAgentDecision(claimId, "BUY_EVIDENCE", `${trigger.rationale} ${spend.rationale}`);
+  // Step 4: Buy evidence via x402 payment
+  updateClaimAgentDecision(claimId, "BUY_EVIDENCE", aiDecision.rationale);
+  console.log(`[Agent] Action: BUY_EVIDENCE`);
+  console.log(`[Agent] Preparing HBAR payment...`);
+
   const accountId = required("EDGRAPH_AGENT_ACCOUNT_ID");
   const privateKey = PrivateKey.fromStringECDSA(required("EDGRAPH_AGENT_PRIVATE_KEY"));
   const network = (process.env.X402_NETWORK ?? "hedera:testnet") as Network;
@@ -69,38 +101,74 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
   const evidenceUrl = makeEvidenceUrl();
   const requestBody = { policyId: policy.policyId, claimId };
 
+  console.log(`[Agent] Calling Evidence API: ${evidenceUrl}`);
   const first = await fetch(evidenceUrl, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json" },
     body: JSON.stringify(requestBody),
   });
+
   if (first.status !== 402) {
     const body = await first.text();
     throw new Error(`Evidence API expected HTTP 402 before payment, received ${first.status}: ${body}`);
   }
 
-  const challengeBody = await first.clone().json().catch(() => undefined);
+  console.log(`[Agent] Received 402 Payment Required`);
+  const challengeBody = await first
+    .clone()
+    .json()
+    .catch(() => undefined);
   const paymentRequired = httpClient.getPaymentRequiredResponse(name => first.headers.get(name), challengeBody);
+  console.log(
+    `[Agent] Payment requirements: ${paymentRequired.options[0]?.price.amount} tinybars to ${paymentRequired.options[0]?.payTo}`,
+  );
+
   const payload = await httpClient.createPaymentPayload(paymentRequired);
+  console.log(`[Agent] Signing HBAR transfer...`);
+
   const paymentHeaders = httpClient.encodePaymentSignatureHeader(payload);
+  console.log(`[Agent] Retrying with PAYMENT-SIGNATURE header...`);
+
   const paid = await fetch(evidenceUrl, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json", ...paymentHeaders },
     body: JSON.stringify(requestBody),
   });
+
   const result = await httpClient.processResponse(paid);
   if (result.kind !== "success") {
     throw new Error(`Evidence payment failed: ${result.kind}`);
   }
 
+  console.log(`[Agent] Payment settled: tx ${result.settleResponse.transaction}`);
+  console.log(`[Agent] Evidence received!`);
+
   const evidence = result.body as EvidenceResponse;
+
+  // Step 5: AI-powered claim evaluation
+  console.log(`[Agent] Running AI claim evaluation...`);
+  const policyDecision = await evaluateClaimWithAI(policy, evidence.report);
+  console.log(`[Agent] AI Evaluation: ${policyDecision.outcome}`);
+  console.log(`[Agent] Reasons: ${policyDecision.reasons.join("; ")}`);
+
+  if (policyDecision.outcome === "ELIGIBLE_RECOMMENDATION") {
+    console.log(
+      `[Agent] Recommended payout: ${policyDecision.recommendedPayoutAmountBaseUnits} ${policy.payoutTokenSymbol}`,
+    );
+  }
+
+  // Step 6: Store evaluation in database
+  updateClaimWithEvaluation(claimId, policyDecision);
+  console.log(`[Agent] Claim updated with policy decision`);
+
   return {
     policy,
     claimId,
     snapshot,
     action: "BUY_EVIDENCE",
-    rationale: `${trigger.rationale} ${spend.rationale}`,
+    rationale: aiDecision.rationale,
     evidence,
+    policyDecision,
     settlement: evidence.payment ?? {
       transaction: result.settleResponse.transaction,
       payer: result.settleResponse.payer,

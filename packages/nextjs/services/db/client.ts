@@ -24,6 +24,11 @@ const migrations: Migration[] = [
     name: "update claims schema",
     fileName: "003_update_claims_schema.sql",
   },
+  {
+    version: 4,
+    name: "add policy decision",
+    fileName: "004_add_policy_decision.sql",
+  },
 ];
 
 type DbGlobal = typeof globalThis & {

@@ -26,6 +26,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@anthropic-ai/sdk@npm:^0.125.0":
+  version: 0.125.0
+  resolution: "@anthropic-ai/sdk@npm:0.125.0"
+  dependencies:
+    json-schema-to-ts: ^3.1.1
+    standardwebhooks: ^1.0.0
+  peerDependencies:
+    zod: ^3.25.0 || ^4.0.0
+  peerDependenciesMeta:
+    zod:
+      optional: true
+  bin:
+    anthropic-ai-sdk: bin/cli
+  checksum: f59eaf29c1bb2a02db707b7b7f7927d59321ff9d37a250e665f0ef4006c01166be21728ab8cd663efccda74bd02ed71944de205da18e1cf6ce124151e9436920
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/checksums@npm:^3.1001.0":
   version: 3.1001.0
   resolution: "@aws-sdk/checksums@npm:3.1001.0"
@@ -40,8 +57,8 @@ __metadata:
   linkType: hard
 
 "@aws-sdk/client-s3@npm:^3.1062.0":
-  version: 3.1129.0
-  resolution: "@aws-sdk/client-s3@npm:3.1129.0"
+  version: 3.1131.0
+  resolution: "@aws-sdk/client-s3@npm:3.1131.0"
   dependencies:
     "@aws-sdk/checksums": ^3.1001.0
     "@aws-sdk/core": ^3.978.0
@@ -54,7 +71,7 @@ __metadata:
     "@smithy/node-http-handler": ^4.11.3
     "@smithy/types": ^4.17.2
     tslib: ^2.6.2
-  checksum: 34a423245137615947cbef3f503d6875a82c0c782a05a922278840605eaae3784844db9e35802923c9071857c6891701539f08a25cf943e0ebd0e05541f7e183
+  checksum: 98aa2bc9a8181642836e5ba2ec8434feae5a53bba0ab0f2bcc1d2f10f980d55aa676532b710769fd5ab7e2115073bfbcc46b52ed907913e6d30304ed8c012684
   languageName: node
   linkType: hard
 
@@ -229,8 +246,8 @@ __metadata:
   linkType: hard
 
 "@aws-sdk/s3-request-presigner@npm:^3.1062.0":
-  version: 3.1129.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1129.0"
+  version: 3.1131.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1131.0"
   dependencies:
     "@aws-sdk/core": ^3.978.0
     "@aws-sdk/signature-v4-multi-region": ^3.996.46
@@ -238,7 +255,7 @@ __metadata:
     "@smithy/core": ^3.33.3
     "@smithy/types": ^4.17.2
     tslib: ^2.6.2
-  checksum: 942267203184df141ab152d428293b31dc2c0b89816bf56725a1e2482e92737803fcd76b60f34737eda6e5538eef4b74ac574f820fbb2d196fefaa02f7e05a3a
+  checksum: ea60cfefdb4ef673810df83009f4e4f16fc3840b7ab92291c15a9bccb414e23fb0f5202f511b0cac3504a874823808382af0d255ab40e4dd55743721a46da96c
   languageName: node
   linkType: hard
 
@@ -389,6 +406,13 @@ __metadata:
   bin:
     parser: ./bin/babel-parser.js
   checksum: c8bbea3c87b8593e78e8901841b068cc004ece24bf3ee44e11b4a3e04f10dab513125ca290c2cc04ba981399b662dbebb0a675016417d600e99272e86d59b375
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.18.3":
+  version: 7.29.7
+  resolution: "@babel/runtime@npm:7.29.7"
+  checksum: bc311855c6dbf5356030979584ca0f8b6cee39fe058175b02e85a73e246fc76ae30248b0d40e70c2652101faeb43279468ed2d086a670673eb9783c1fee1df2b
   languageName: node
   linkType: hard
 
@@ -1738,6 +1762,13 @@ __metadata:
   version: 2.1.1
   resolution: "@fastify/busboy@npm:2.1.1"
   checksum: 42c32ef75e906c9a4809c1e1930a5ca6d4ddc8d138e1a8c8ba5ea07f997db32210617d23b2e4a85fe376316a41a1a0439fc6ff2dedf5126d96f45a9d80754fb2
+  languageName: node
+  linkType: hard
+
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: d999b98acf1a6dba36a3e3693e02fde270c21b8d20333e2d458cf085e90508b24fad6c8d05d9475817fdf9d1ff1bf4082c86a4b09d2e59af739d391e59bca7ed
   languageName: node
   linkType: hard
 
@@ -3850,12 +3881,12 @@ __metadata:
   linkType: soft
 
 "@smithy/core@npm:^3.33.2, @smithy/core@npm:^3.33.3":
-  version: 3.33.3
-  resolution: "@smithy/core@npm:3.33.3"
+  version: 3.34.1
+  resolution: "@smithy/core@npm:3.34.1"
   dependencies:
-    "@smithy/types": ^4.17.2
+    "@smithy/types": ^4.18.0
     tslib: ^2.6.2
-  checksum: b0d79770aaadabf1fac7dd3f3394e8773b29a691a8043edf112df95000a3d527d0eda26da6bb3df82334bb8bb70edac4d86939b8c908f368d101ebfcad10a5d7
+  checksum: 1310395ed6935457adc28e37a4de5d4edfc4668110198beab3ebb73932bc243e6689af25ef3a04acd2b7b10f20325162afe38daf24f73fa74361181a37c8579a
   languageName: node
   linkType: hard
 
@@ -4636,6 +4667,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stablelib/base64@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@stablelib/base64@npm:1.0.1"
+  checksum: 3ef4466d1d6889ac3fc67407bc21aa079953981c322eeca3b29f426d05506c63011faab1bfc042d7406e0677a94de6c9d2db2ce079afdd1eccae90031bfb5859
+  languageName: node
+  linkType: hard
+
 "@swc/helpers@npm:0.5.15":
   version: 0.5.15
   resolution: "@swc/helpers@npm:0.5.15"
@@ -4796,7 +4834,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tailwindcss/postcss@npm:latest":
+"@tailwindcss/postcss@latest":
   version: 4.3.3
   resolution: "@tailwindcss/postcss@npm:4.3.3"
   dependencies:
@@ -7733,9 +7771,9 @@ __metadata:
   linkType: hard
 
 "daisyui@npm:^5.0.9":
-  version: 5.7.34
-  resolution: "daisyui@npm:5.7.34"
-  checksum: f58ad207ab18715eb96317b42a683db55e5545a993563c624a8f3894a49400b434ee73b90ceb06398731a03959837fb0208f1202d7f25061a96c46560d48b39f
+  version: 5.7.37
+  resolution: "daisyui@npm:5.7.37"
+  checksum: ca3ee9a3fcc803259152156bc00884ddb4940a870fb1a7a20fb88caf6bf90365429ebfeb3b2d400edd3bffe1ee3a273b4be441ff87b865f2e6fd0211e17252ea
   languageName: node
   linkType: hard
 
@@ -8110,12 +8148,12 @@ __metadata:
   linkType: hard
 
 "enhanced-resolve@npm:^5.24.1":
-  version: 5.24.5
-  resolution: "enhanced-resolve@npm:5.24.5"
+  version: 5.25.0
+  resolution: "enhanced-resolve@npm:5.25.0"
   dependencies:
     graceful-fs: ^4.2.4
     tapable: ^2.3.3
-  checksum: dc2da64244f529335c603870ca485281f92cd92c4579b1baf613d5f86cfc71f901ea3c29066e242c115340be8164e9d9c917bd05720b3be8bed649745004dc24
+  checksum: c9241f51206fe2978d1659b0ebd2b7aba623834c43aa91cce013283b521abc8b7bb9d6241393fe4ec7912182da5bab04a1dc5901b5061f174b935e19de03bfb6
   languageName: node
   linkType: hard
 
@@ -9222,6 +9260,13 @@ __metadata:
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
   checksum: a851cbddc451745662f8f00ddb622d6766f9bd97642dabfd9a405fb0d646d69fc0b9a1243cbf67f5f18a39f40f6fa821737651ff1bceeba06c9992ca2dc5bd3d
+  languageName: node
+  linkType: hard
+
+"fast-sha256@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "fast-sha256@npm:1.3.0"
+  checksum: 2b0bea7d3a9955e67abd2d3fbef4ce57f7dbb75708fc206d14973bd1d97aaf35b5c0a59c1d65be6f755df43d73b7657b9eac4fb3c2d58e6849966db1ef1fa186
   languageName: node
   linkType: hard
 
@@ -10838,6 +10883,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"json-schema-to-ts@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "json-schema-to-ts@npm:3.1.1"
+  dependencies:
+    "@babel/runtime": ^7.18.3
+    ts-algebra: ^2.0.0
+  checksum: b616f1c2d7492502e11eec4f8e4539ee1e897543a679d929494afdc164d9557275cead8372747b73f239b1e68056ffbf551b03ae82d0047bba0dfe2bbd6b64f4
+  languageName: node
+  linkType: hard
+
 "json-schema-traverse@npm:^0.4.1":
   version: 0.4.1
   resolution: "json-schema-traverse@npm:0.4.1"
@@ -11742,11 +11797,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.18, nanoid@npm:^3.3.6":
-  version: 3.3.18
-  resolution: "nanoid@npm:3.3.18"
+  version: 3.3.19
+  resolution: "nanoid@npm:3.3.19"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: db804317d337b41602666f23014e399d1263033d13a903955c246378256fd4e002519e87199ca40b19aff52274965ac7cc6e70c13a63e194e15c4664724602d3
+  checksum: 9e7a9c78d81b3778844df795aa17da6fde77825eacee6c6e5776cac0055326d54cc1bfee71ad0a9a1f11556c93a243a63648228e6c6b24ae7d4f75f6d4466a99
   languageName: node
   linkType: hard
 
@@ -13531,6 +13586,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sh@workspace:."
   dependencies:
+    "@anthropic-ai/sdk": ^0.125.0
+    "@google/generative-ai": ^0.24.1
     "@mapbox/node-pre-gyp": ^2.0.3
     concurrently: ^10.0.5
     graphql: ^17.0.2
@@ -13920,6 +13977,16 @@ __metadata:
   dependencies:
     type-fest: ^0.7.1
   checksum: 1120cf716606ec6a8e25cc9b6ada79d7b91e6a599bba1a6664e6badc8b5f37987d7df7d9ad0344f717a042781fd8e1e999de08614a5afea451b68902421036b5
+  languageName: node
+  linkType: hard
+
+"standardwebhooks@npm:^1.0.0":
+  version: 1.1.1
+  resolution: "standardwebhooks@npm:1.1.1"
+  dependencies:
+    "@stablelib/base64": ^1.0.0
+    fast-sha256: ^1.3.0
+  checksum: 80737c89accc42a501c0456e3313c6eaa19c901cf41ee68bdf0d10644f0c57d344e0c14560d0a65984e878d18e9b00466908f4f1323e54f0403e1dcf6120f08e
   languageName: node
   linkType: hard
 
@@ -14383,6 +14450,13 @@ __metadata:
   bin:
     tree-kill: cli.js
   checksum: 49117f5f410d19c84b0464d29afb9642c863bc5ba40fcb9a245d474c6d5cc64d1b177a6e6713129eb346b40aebb9d4631d967517f9fbe8251c35b21b13cd96c7
+  languageName: node
+  linkType: hard
+
+"ts-algebra@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "ts-algebra@npm:2.0.0"
+  checksum: 970b0e7db49cf8c1a8ff2a816eb047fac8add47511f5e4995e4998c56c6f7b226399284412de88f3e137ab55c857a4262c0d8f02f0765730e7d3a021de2ea7ef
   languageName: node
   linkType: hard
 
@@ -15485,11 +15559,11 @@ __metadata:
   linkType: hard
 
 "yaml@npm:^2.7.0, yaml@npm:^2.8.2":
-  version: 2.9.0
-  resolution: "yaml@npm:2.9.0"
+  version: 2.9.1
+  resolution: "yaml@npm:2.9.1"
   bin:
     yaml: bin.mjs
-  checksum: f0f74b349c126bb9acf649be1e7efaec5869b1567bdc047e43b176bcdd7730a9bc7ab8fc9c6b1c358e611fab0fe0a0d8933393f1af383a7dc0b4755a1d5f31f9
+  checksum: 583253ce0075cc1b7a4328116380ae2a97d6feb62677ba5d52f7cb774de6e34f1d9e655aaa536347ced55fcaede020253212d1c60c98fc672d43be23ebfcd862
   languageName: node
   linkType: hard
 
@@ -15646,9 +15720,9 @@ __metadata:
   linkType: hard
 
 "zod@npm:^4.2.0, zod@npm:^4.3.6, zod@npm:^4.4.3":
-  version: 4.6.1
-  resolution: "zod@npm:4.6.1"
-  checksum: d363e198212583bcd17f71ab6306cf97ddf700c95529b138ab2281b8e366d8eabdf97c78407ed8b23f7d5ac2032a3d517521333208667adfb896657bffcfc4fe
+  version: 4.6.2
+  resolution: "zod@npm:4.6.2"
+  checksum: 2b5a8ea1bd05a8ca07883a905e29832babb96931c67103887c2a7a24cac97f68fb5d02ed01260201fbd2e91ef31f7364b101812e8df0915ec677108ebb019195
   languageName: node
   linkType: hard
 

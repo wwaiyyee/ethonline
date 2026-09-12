@@ -13,7 +13,9 @@
     "lint": "next lint",
     "serve": "next start",
     "start": "next dev",
-    "x402:buy": "tsx scripts/x402-buy.ts"
+    "x402:buy": "tsx scripts/x402-buy.ts",
+    "ai:test": "tsx scripts/test-ai-agent.ts",
+    "ai:compare": "tsx scripts/compare-hardcoded-vs-ai.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1062.0",

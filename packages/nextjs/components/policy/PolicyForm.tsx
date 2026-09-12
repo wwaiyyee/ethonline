@@ -28,6 +28,15 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
 
   console.log("PolicyForm wallet state:", { isConnected, accountId, isInitializing });
 
+  // Get default dates: today and 30 days from now
+  const today = new Date();
+  const thirtyDaysLater = new Date();
+  thirtyDaysLater.setDate(today.getDate() + 30);
+
+  const formatDateForInput = (date: Date) => {
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD
+  };
+
   const [formData, setFormData] = useState({
     policyholder: "",
     dataChainId: "ethereum",
@@ -38,8 +47,8 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
     minimumDurationMinutes: "15",
     payoutAmountBaseUnits: "1000000000",
     payoutTokenSymbol: "HBAR",
-    coverageStartDays: "0",
-    coverageEndDays: "30",
+    coverageStartDate: formatDateForInput(today),
+    coverageEndDate: formatDateForInput(thirtyDaysLater),
     maxEvidenceBudgetTinybar: "500000000",
   });
 
@@ -75,9 +84,14 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
     setError(null);
 
     try {
-      const now = Math.floor(Date.now() / 1000);
-      const coverageStart = now + parseInt(formData.coverageStartDays) * 86400;
-      const coverageEnd = now + parseInt(formData.coverageEndDays) * 86400;
+      // Convert date strings to Unix timestamps
+      const coverageStart = Math.floor(new Date(formData.coverageStartDate).getTime() / 1000);
+      const coverageEnd = Math.floor(new Date(formData.coverageEndDate).getTime() / 1000);
+
+      // Validate dates
+      if (coverageEnd <= coverageStart) {
+        throw new Error("Coverage end date must be after start date");
+      }
 
       const contractAddress = getPolicyRegistryAddress(targetNetwork.id);
       if (!contractAddress) {
@@ -315,32 +329,28 @@ export function PolicyForm({ onSuccess, onCancel }: PolicyFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">Start (days from now) *</span>
+            <span className="label-text font-medium">Coverage Start Date *</span>
           </label>
           <input
-            type="number"
-            name="coverageStartDays"
-            value={formData.coverageStartDays}
+            type="date"
+            name="coverageStartDate"
+            value={formData.coverageStartDate}
             onChange={handleChange}
-            placeholder="0"
             className="input input-bordered"
-            min="0"
             required
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-medium">End (days from now) *</span>
+            <span className="label-text font-medium">Coverage End Date *</span>
           </label>
           <input
-            type="number"
-            name="coverageEndDays"
-            value={formData.coverageEndDays}
+            type="date"
+            name="coverageEndDate"
+            value={formData.coverageEndDate}
             onChange={handleChange}
-            placeholder="30"
             className="input input-bordered"
-            min="1"
             required
           />
         </div>

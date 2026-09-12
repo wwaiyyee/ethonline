@@ -1,0 +1,58 @@
+================================================================================
+                    HOW TO RUN THE AI CLAIMS AGENT
+================================================================================
+
+STEP 1: Get FREE Gemini API Key
+--------------------------------
+Open: https://aistudio.google.com/app/apikey
+Click: "Get API key" -> "Create API key in new project"
+Copy: AIzaSy...
+
+
+STEP 2: Add Key to .env
+--------------------------------
+Open file: d:\Nebula\ethonline\packages\nextjs\.env
+
+Add this line at the bottom:
+GEMINI_API_KEY=AIzaSy...YOUR_KEY_HERE
+
+Save the file.
+
+
+STEP 3: Run the Test
+--------------------------------
+cd d:/Nebula/ethonline/packages/nextjs
+npm run ai:test test-policy-usdc-1
+
+
+EXPECTED OUTPUT:
+--------------------------------
+[AI] Querying Gemini 1.5 Flash for risk assessment...
+[AI Risk Assessment] Risk Level: LOW
+[AI Risk Assessment] Buy Evidence: NO
+[AI Risk Assessment] Confidence: 87%
+[AI Risk Assessment] Rationale: Current USDC price is stable and well 
+  above the depeg threshold...
+
+
+OTHER COMMANDS:
+--------------------------------
+# Test all policies
+npm run ai:test
+
+# Compare hardcoded vs AI
+npm run ai:compare test-policy-usdc-1
+
+
+TROUBLESHOOTING:
+--------------------------------
+Problem: "GEMINI_API_KEY not set"
+Solution: Check .env file has the key:
+  cat .env | grep GEMINI
+
+Problem: Can't find .env file
+Solution: Full path is: d:\Nebula\ethonline\packages\nextjs\.env
+
+
+STATUS: Ready to test!
+================================================================================

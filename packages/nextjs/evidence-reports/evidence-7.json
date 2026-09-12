@@ -1,0 +1,30 @@
+{
+  "claimId": "claim-test-policy-usdc-1-1788976831",
+  "policyId": "test-policy-usdc-1",
+  "generatedAt": "2026-09-12T17:11:13.683Z",
+  "triggerWindow": {
+    "start": 1788974691,
+    "end": 1788976731,
+    "durationMinutes": 34
+  },
+  "policyTerms": {
+    "thresholdBps": 9800,
+    "thresholdUsd": 0.98,
+    "minimumDurationMinutes": 15,
+    "stablecoin": "USDC"
+  },
+  "observations": [],
+  "statistics": {
+    "observationCount": 0,
+    "minPrice": null,
+    "maxPrice": null,
+    "avgPrice": null,
+    "allBelowThreshold": true,
+    "continuousCoverage": true
+  },
+  "verdict": {
+    "meetsThreshold": true,
+    "meetsDuration": false,
+    "isValid": true
+  }
+}

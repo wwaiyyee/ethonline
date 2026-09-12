@@ -60,6 +60,8 @@
     "node": ">=20.18.3"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "@google/generative-ai": "^0.24.1",
     "graphql": "^17.0.2",
     "graphql-request": "^7.4.0"
   }

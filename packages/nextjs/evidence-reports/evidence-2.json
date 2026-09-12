@@ -1,0 +1,331 @@
+{
+  "claimId": "claim-0x4dee2485a9c74c0d8cd0d5726d999f717df042d30764ff84385059cf5eea0430-1789153591",
+  "policyId": "0x4dee2485a9c74c0d8cd0d5726d999f717df042d30764ff84385059cf5eea0430",
+  "generatedAt": "2026-09-12T17:16:01.255Z",
+  "triggerWindow": {
+    "start": 1789153531,
+    "end": 1789153591,
+    "durationMinutes": 1
+  },
+  "policyTerms": {
+    "thresholdBps": 9999,
+    "thresholdUsd": 0.9999,
+    "minimumDurationMinutes": 1,
+    "stablecoin": "USDC"
+  },
+  "observations": [
+    {
+      "timestamp": 1789153531,
+      "timestampIso": "2026-09-11T19:05:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153591,
+      "timestampIso": "2026-09-11T19:06:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153651,
+      "timestampIso": "2026-09-11T19:07:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153711,
+      "timestampIso": "2026-09-11T19:08:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153771,
+      "timestampIso": "2026-09-11T19:09:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153831,
+      "timestampIso": "2026-09-11T19:10:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153891,
+      "timestampIso": "2026-09-11T19:11:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789153951,
+      "timestampIso": "2026-09-11T19:12:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154011,
+      "timestampIso": "2026-09-11T19:13:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154071,
+      "timestampIso": "2026-09-11T19:14:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154131,
+      "timestampIso": "2026-09-11T19:15:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154191,
+      "timestampIso": "2026-09-11T19:16:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154251,
+      "timestampIso": "2026-09-11T19:17:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154311,
+      "timestampIso": "2026-09-11T19:18:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154371,
+      "timestampIso": "2026-09-11T19:19:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154431,
+      "timestampIso": "2026-09-11T19:20:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154491,
+      "timestampIso": "2026-09-11T19:21:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154551,
+      "timestampIso": "2026-09-11T19:22:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154611,
+      "timestampIso": "2026-09-11T19:23:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154671,
+      "timestampIso": "2026-09-11T19:24:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154731,
+      "timestampIso": "2026-09-11T19:25:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154791,
+      "timestampIso": "2026-09-11T19:26:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154851,
+      "timestampIso": "2026-09-11T19:27:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154911,
+      "timestampIso": "2026-09-11T19:28:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789154971,
+      "timestampIso": "2026-09-11T19:29:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789155031,
+      "timestampIso": "2026-09-11T19:30:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789155091,
+      "timestampIso": "2026-09-11T19:31:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789155151,
+      "timestampIso": "2026-09-11T19:32:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789155211,
+      "timestampIso": "2026-09-11T19:33:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    },
+    {
+      "timestamp": 1789155271,
+      "timestampIso": "2026-09-11T19:34:31.000Z",
+      "priceUsd": 0.989901,
+      "liquidityUsd": 419575203.43680996,
+      "volumeUsd": 605401397674.27,
+      "sourceBlock": 0,
+      "sourceName": "the-graph-live",
+      "dataComplete": true
+    }
+  ],
+  "statistics": {
+    "observationCount": 30,
+    "minPrice": 0.989901,
+    "maxPrice": 0.989901,
+    "avgPrice": 0.9899009999999998,
+    "allBelowThreshold": true,
+    "continuousCoverage": true
+  },
+  "verdict": {
+    "meetsThreshold": true,
+    "meetsDuration": true,
+    "isValid": true
+  }
+}

@@ -69,25 +69,29 @@ export async function GET(req: Request) {
 
     let query = `
       SELECT
-        claim_id, policy_id, status,
-        trigger_window_start, trigger_window_end,
-        created_at, lowest_price_usd_micros, duration_minutes,
-        decision_outcome, decision_confidence, decision_reasoning,
-        decision_recommended_payout, decision_evaluated_at,
-        last_agent_action, evidence_file_ids,
-        approved_at, rejected_at, resolution_transaction_id,
-        notes, updated_at
-      FROM claims
+        c.claim_id, c.policy_id, c.status,
+        c.trigger_window_start, c.trigger_window_end,
+        c.created_at,
+        COALESCE(e.lowest_observed_price_usd_micros, c.lowest_price_usd_micros) as lowest_price_usd_micros,
+        COALESCE(e.below_threshold_duration_minutes, c.duration_minutes) as duration_minutes,
+        c.decision_outcome, c.decision_confidence, c.decision_reasoning,
+        c.decision_recommended_payout, c.decision_evaluated_at,
+        c.last_agent_action,
+        CASE WHEN e.evidence_id IS NOT NULL THEN json_array(e.evidence_id) ELSE c.evidence_file_ids END as evidence_file_ids,
+        c.approved_at, c.rejected_at, c.resolution_transaction_id,
+        c.notes, c.updated_at
+      FROM claims c
+      LEFT JOIN evidence e ON c.claim_id = e.claim_id
     `;
 
     const params: any[] = [];
 
     if (policyId) {
-      query += " WHERE policy_id = ?";
+      query += " WHERE c.policy_id = ?";
       params.push(policyId);
     }
 
-    query += " ORDER BY created_at DESC";
+    query += " ORDER BY c.created_at DESC";
 
     const rows = db.prepare(query).all(...params) as ClaimRow[];
     const claims = rows.map(rowToClaim);

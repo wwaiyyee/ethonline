@@ -7,6 +7,8 @@ import {
 import type { PaymentRequirements, ResourceInfo } from "@x402/core/types";
 import { createHash } from "node:crypto";
 import { recordEvidenceAudit } from "~~/services/evidence/repository";
+import { buildDepegEvidence } from "~~/services/graph/evidence";
+import { getPolicy } from "~~/services/policy/repository";
 import type { EvidenceReport } from "~~/services/policy/types";
 import {
   HBAR_ASSET,
@@ -25,33 +27,34 @@ const resourceInfo: ResourceInfo = {
   mimeType: "application/json",
 };
 
-function reportFor(claimId: string, body: Record<string, unknown>): EvidenceReport {
-  const now = Math.floor(Date.now() / 1000);
-  const endpoint = process.env.EDGRAPH_GRAPH_ENDPOINT ?? "live-graph-provider-not-configured";
-  const queryHash = createHash("sha256").update(JSON.stringify(body)).digest("hex");
-  return {
-    depegVerified: false,
-    lowestObservedPriceUsdMicros: Number(body.lowestObservedPriceUsdMicros ?? 1_000_000),
-    belowThresholdDurationMinutes: Number(body.belowThresholdDurationMinutes ?? 0),
-    liquidityChangeBps: Number(body.liquidityChangeBps ?? 0),
-    evidence: [
-      `Evidence report generated for claim ${claimId}`,
-      "Graph observations and provenance are attached for deterministic policy evaluation.",
-    ],
-    provenance: {
-      endpoint,
-      subgraphId: process.env.EDGRAPH_GRAPH_SUBGRAPH_ID,
-      queryHash,
-      fromTimestamp: now - 1800,
-      toTimestamp: now,
-    },
-  };
+async function generateEvidenceReport(policyId: string, claimId: string): Promise<EvidenceReport> {
+  console.log(`[Evidence API] Generating evidence for policy ${policyId}, claim ${claimId}`);
+
+  const policy = getPolicy(policyId);
+  if (!policy) {
+    throw new Error(`Policy ${policyId} not found in EdGraph database`);
+  }
+
+  // Generate real evidence from live Graph data
+  const report = await buildDepegEvidence(policy, 30 * 60);
+
+  console.log(`[Evidence API] Evidence generated:`);
+  console.log(`  - Depeg verified: ${report.depegVerified}`);
+  console.log(`  - Lowest price: $${(report.lowestObservedPriceUsdMicros / 1_000_000).toFixed(6)}`);
+  console.log(`  - Duration: ${report.belowThresholdDurationMinutes} minutes`);
+  console.log(`  - Liquidity change: ${report.liquidityChangeBps} bps`);
+
+  return report;
 }
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const claimId = typeof body?.claimId === "string" && body.claimId.trim() ? body.claimId.trim() : null;
+  const policyId = typeof body?.policyId === "string" && body.policyId.trim() ? body.policyId.trim() : null;
+
   if (!claimId) return NextResponse.json({ error: "claimId is required" }, { status: 400 });
+  if (!policyId) return NextResponse.json({ error: "policyId is required" }, { status: 400 });
+
   const { context, resourceUrl } = makeHttpContext(req);
   let server;
   try {
@@ -89,7 +92,10 @@ export async function POST(req: Request) {
   const settlement = await server.settlePayment(payload, matched);
   if (!settlement.success)
     return NextResponse.json({ error: "Payment settlement failed", reason: settlement.errorReason }, { status: 402 });
-  const report = reportFor(claimId, body ?? {});
+
+  // Generate real evidence from live Graph data
+  const report = await generateEvidenceReport(policyId, claimId);
+
   const paymentId = createHash("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 32);
   recordEvidenceAudit({
     claimId,
