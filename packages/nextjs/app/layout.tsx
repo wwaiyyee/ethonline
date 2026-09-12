@@ -9,6 +9,9 @@ export const metadata = getMetadata({
   description: "Live Graph-backed stablecoin coverage operations with Hedera x402 evidence.",
 });
 
+// Force dynamic rendering for all pages to avoid WalletConnect ES module issues
+export const dynamic = "force-dynamic";
+
 const ScaffoldHbarApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
