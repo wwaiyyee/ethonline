@@ -12,7 +12,8 @@ interface ClaimCardProps {
 export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp: number | null | undefined) => {
+    if (timestamp == null) return "Pending";
     return new Date(timestamp * 1000).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
@@ -22,7 +23,8 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
     });
   };
 
-  const formatPrice = (priceMicros: number) => {
+  const formatPrice = (priceMicros: number | null | undefined) => {
+    if (priceMicros == null) return "Pending";
     return `$${(priceMicros / 1_000_000).toFixed(4)}`;
   };
 
@@ -85,11 +87,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
               <div>
                 <h3 className="text-lg font-bold">Depeg Detection</h3>
                 <div
-                  className="text-xs text-base-content/60 font-mono cursor-pointer hover:text-base-content/80"
+                  className="text-xs text-base-content/60 font-mono cursor-pointer hover:text-base-content/80 break-all"
                   onClick={() => copyToClipboard(claim.claimId)}
                   title="Click to copy"
                 >
-                  {claim.claimId.slice(0, 24)}...
+                  {claim.claimId}
                 </div>
               </div>
             </div>
@@ -101,11 +103,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
         <div className="mb-4 pb-4 border-b border-base-300">
           <div className="text-xs text-base-content/60 mb-1">Policy ID:</div>
           <div
-            className="text-sm font-mono bg-base-200 px-3 py-1.5 rounded cursor-pointer hover:bg-base-300 transition-colors inline-block"
+            className="text-sm font-mono bg-base-200 px-3 py-1.5 rounded cursor-pointer hover:bg-base-300 transition-colors inline-block break-all"
             onClick={() => copyToClipboard(claim.policyId)}
             title="Click to copy"
           >
-            {claim.policyId.slice(0, 20)}...{claim.policyId.slice(-8)}
+            {claim.policyId}
           </div>
         </div>
 
@@ -118,12 +120,12 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
           <div className="bg-base-200 rounded-lg p-3">
             <div className="text-xs text-base-content/60 mb-1">Duration</div>
-            <div className="text-lg font-bold">{claim.durationMinutes} min</div>
+            <div className="text-lg font-bold">{claim.durationMinutes ?? "—"} min</div>
           </div>
 
           <div className="bg-base-200 rounded-lg p-3">
             <div className="text-xs text-base-content/60 mb-1">Detected At</div>
-            <div className="text-sm font-mono">{formatDate(claim.detectedAt)}</div>
+            <div className="text-sm font-mono">{formatDate(claim.createdAt)}</div>
           </div>
 
           <div className="bg-base-200 rounded-lg p-3">

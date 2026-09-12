@@ -11,7 +11,7 @@ type ClaimRow = {
   status: string;
   trigger_window_start: number;
   trigger_window_end: number;
-  detected_at: number;
+  created_at: string;
   lowest_price_usd_micros: number | null;
   duration_minutes: number | null;
   decision_outcome: string | null;
@@ -25,18 +25,20 @@ type ClaimRow = {
   rejected_at: number | null;
   resolution_transaction_id: string | null;
   notes: string | null;
-  created_at: string;
   updated_at: string;
 };
 
 function rowToClaim(row: ClaimRow): Claim {
+  // Convert created_at string to Unix timestamp
+  const createdAtTimestamp = Math.floor(new Date(row.created_at).getTime() / 1000);
+
   return {
     claimId: row.claim_id,
     policyId: row.policy_id,
     status: row.status as Claim["status"],
     triggerWindowStart: row.trigger_window_start,
     triggerWindowEnd: row.trigger_window_end,
-    detectedAt: row.detected_at,
+    createdAt: createdAtTimestamp,
     lowestPriceUsdMicros: row.lowest_price_usd_micros ?? undefined,
     durationMinutes: row.duration_minutes ?? undefined,
     decision: row.decision_outcome
@@ -69,12 +71,12 @@ export async function GET(req: Request) {
       SELECT
         claim_id, policy_id, status,
         trigger_window_start, trigger_window_end,
-        detected_at, lowest_price_usd_micros, duration_minutes,
+        created_at, lowest_price_usd_micros, duration_minutes,
         decision_outcome, decision_confidence, decision_reasoning,
         decision_recommended_payout, decision_evaluated_at,
         last_agent_action, evidence_file_ids,
         approved_at, rejected_at, resolution_transaction_id,
-        notes, created_at, updated_at
+        notes, updated_at
       FROM claims
     `;
 
@@ -85,7 +87,7 @@ export async function GET(req: Request) {
       params.push(policyId);
     }
 
-    query += " ORDER BY detected_at DESC";
+    query += " ORDER BY created_at DESC";
 
     const rows = db.prepare(query).all(...params) as ClaimRow[];
     const claims = rows.map(rowToClaim);

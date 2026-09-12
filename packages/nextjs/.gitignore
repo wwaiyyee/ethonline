@@ -39,3 +39,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 WALLET_CREDENTIALS.md
+packages/nextjs/.data/edgraph.sqlite*

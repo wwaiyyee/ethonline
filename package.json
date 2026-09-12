@@ -9,6 +9,7 @@
     ]
   },
   "scripts": {
+    "dev": "concurrently -n \"next,monitor\" -c \"cyan,yellow\" \"yarn next:dev\" \"yarn edgraph:monitor\"",
     "format": "yarn next:format && yarn hardhat:format",
     "infra:up": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose up -d --build; else docker-compose up -d --build; fi'",
     "infra:down": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose down; else docker-compose down; fi'",
@@ -51,6 +52,7 @@
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^2.0.3",
+    "concurrently": "^10.0.5",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10"
   },

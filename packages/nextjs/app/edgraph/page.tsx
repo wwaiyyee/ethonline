@@ -8,6 +8,7 @@ type DashboardData = {
   policies: Array<{
     policy: {
       policyId: string;
+      policyholder: string;
       stablecoinSymbol: string;
       thresholdBps: number;
       minimumDurationMinutes: number;
@@ -66,6 +67,7 @@ export default function EdGraphDashboard() {
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold">{policy.stablecoinSymbol} coverage policy</h2>
+                  <p className="mt-1 text-sm text-base-content/70">{policy.policyholder}</p>
                   <p className="mt-1 break-all font-mono text-xs text-base-content/60">{policy.policyId}</p>
                 </div>
                 <span className={policy.active ? "badge badge-success" : "badge badge-ghost"}>
