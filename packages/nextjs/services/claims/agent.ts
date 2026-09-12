@@ -91,8 +91,8 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     body: JSON.stringify(requestBody),
   });
   const result = await httpClient.processResponse(paid);
-  if (result.kind !== "success") {
-    throw new Error(`Evidence payment failed: ${result.kind}`);
+  if (result.paymentStatus !== "settled") {
+    throw new Error(`Evidence payment failed: ${result.paymentStatus}`);
   }
 
   const evidence = result.body as EvidenceResponse;
@@ -103,10 +103,6 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     action: "BUY_EVIDENCE",
     rationale: `${trigger.rationale} ${spend.rationale}`,
     evidence,
-    settlement: evidence.payment ?? {
-      transaction: result.settleResponse.transaction,
-      payer: result.settleResponse.payer,
-      network: result.settleResponse.network,
-    },
+    settlement: evidence.payment,
   };
 }

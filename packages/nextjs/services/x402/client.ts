@@ -76,23 +76,11 @@ export async function payAndGetDownloadUrl(params: {
   const paid = await fetch(params.resourceUrl, { headers: paymentHeaders });
   const result = await httpClient.processResponse(paid);
 
-  switch (result.kind) {
-    case "success": {
-      const body = result.body as { url?: string };
-      if (!body?.url) throw new Error("Payment succeeded but no download URL was returned");
-      return { url: body.url, transaction: result.settleResponse.transaction, payer: result.settleResponse.payer };
-    }
-    case "settle_failed":
-      throw new Error(`Payment settlement failed: ${result.settleResponse.errorReason ?? "unknown"}`);
-    case "payment_required": {
-      const reason = (result.paymentRequired as { error?: string })?.error ?? "Payment was rejected by the server";
-      throw new Error(reason);
-    }
-    case "error": {
-      const body = result.body as { error?: string };
-      throw new Error(body?.error ?? `Download failed with status ${result.status}`);
-    }
-    default:
-      throw new Error("Unexpected response from server");
+  if (result.paymentStatus === "settled") {
+    const body = result.body as { url?: string; payment?: { transaction?: string; payer?: string } };
+    if (!body?.url) throw new Error("Payment succeeded but no download URL was returned");
+    return { url: body.url, transaction: body.payment?.transaction, payer: body.payment?.payer };
   }
+
+  throw new Error(`Payment failed with status: ${result.paymentStatus}`);
 }
