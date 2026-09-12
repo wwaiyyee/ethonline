@@ -125,7 +125,7 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
           <div className="bg-base-200 rounded-lg p-3">
             <div className="text-xs text-base-content/60 mb-1">Detected At</div>
-            <div className="text-sm font-mono">{formatDate(claim.createdAt)}</div>
+            <div className="text-sm font-mono">{formatDate(claim.detectedAt)}</div>
           </div>
 
           <div className="bg-base-200 rounded-lg p-3">
