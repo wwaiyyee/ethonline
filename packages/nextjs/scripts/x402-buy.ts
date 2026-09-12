@@ -83,7 +83,7 @@ async function main() {
     const body = result.body as { url?: string; payment?: { transaction?: string } };
     if (!body.url) throw new Error("Payment succeeded but no download URL was returned");
 
-    const txId = body.payment?.transaction || result.header?.transaction || "unknown";
+    const txId = body.payment?.transaction || "unknown";
     console.log(`[x402-buy] Settled · tx ${txId}`);
     downloadUrl = body.url;
   } else {
