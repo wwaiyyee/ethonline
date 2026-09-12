@@ -3845,6 +3845,7 @@ __metadata:
     util: ^0.12.5
     viem: 2.52.2
     wagmi: ^3.6.0
+    yaml: ^2.9.1
     zustand: ^5.0.0
   languageName: unknown
   linkType: soft
@@ -15490,6 +15491,15 @@ __metadata:
   bin:
     yaml: bin.mjs
   checksum: f0f74b349c126bb9acf649be1e7efaec5869b1567bdc047e43b176bcdd7730a9bc7ab8fc9c6b1c358e611fab0fe0a0d8933393f1af383a7dc0b4755a1d5f31f9
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "yaml@npm:2.9.1"
+  bin:
+    yaml: bin.mjs
+  checksum: 583253ce0075cc1b7a4328116380ae2a97d6feb62677ba5d52f7cb774de6e34f1d9e655aaa536347ced55fcaede020253212d1c60c98fc672d43be23ebfcd862
   languageName: node
   linkType: hard
 

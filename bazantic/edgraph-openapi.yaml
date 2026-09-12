@@ -1,0 +1,443 @@
+openapi: 3.0.3
+info:
+  title: EdGraph Evidence API
+  version: 1.0.0
+  description: |
+    EdGraph's stablecoin depeg monitoring and evidence generation system.
+
+    Provides two key services:
+    1. Live Graph pool snapshot (free)
+    2. Detailed depeg evidence with cryptographic provenance (paid via x402/HBAR)
+
+    The paid Evidence API implements x402 payment protocol with Hedera testnet HBAR.
+  contact:
+    name: EdGraph Support
+    url: https://github.com/your-repo
+
+servers:
+  - url: https://your-deployment-url.com
+    description: Production deployment
+  - url: http://localhost:3000
+    description: Local development
+
+paths:
+  /api/health:
+    get:
+      summary: Health check endpoint
+      description: Returns service status and configuration
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: edgraph-evidence-api
+                  graph:
+                    type: object
+                    properties:
+                      configured:
+                        type: boolean
+                      endpoint:
+                        type: string
+                      pool:
+                        type: string
+                  x402:
+                    type: object
+                    properties:
+                      network:
+                        type: string
+                        example: hedera:testnet
+                      facilitator:
+                        type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/graph/snapshot:
+    post:
+      summary: Get live pool risk snapshot
+      description: |
+        Query The Graph for live Uniswap pool data including price, liquidity, and volume.
+        This is a free endpoint that provides real-time market observation.
+      operationId: getPoolSnapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policyId
+              properties:
+                policyId:
+                  type: string
+                  description: Policy ID (hex string with 0x prefix)
+                  example: "0x37fa3d9cde09def97e688634b3ba7ee1c51af6418dd24432a03555bd15968025"
+      responses:
+        '200':
+          description: Pool snapshot retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPriceUsdMicros:
+                    type: integer
+                    description: Current pool price in USD micros (1e6 = $1)
+                    example: 1000000
+                  recentPriceMovementBps:
+                    type: integer
+                    description: Price movement in basis points
+                    example: -150
+                  liquidityChangeBps:
+                    type: integer
+                    description: Liquidity change in basis points
+                    example: -500
+                  observationTimestamps:
+                    type: array
+                    items:
+                      type: integer
+                    description: Unix timestamps of observations
+                  provenance:
+                    type: object
+                    properties:
+                      endpoint:
+                        type: string
+                      subgraphId:
+                        type: string
+                      queryHash:
+                        type: string
+                      fromTimestamp:
+                        type: integer
+                      toTimestamp:
+                        type: integer
+                  observation:
+                    type: object
+                    description: Stored observation record
+        '400':
+          description: Bad request - missing or invalid policyId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Graph service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/depeg-evidence:
+    post:
+      summary: Generate depeg evidence report (paid)
+      description: |
+        Generate a detailed depeg evidence report with cryptographic provenance.
+
+        **Payment Required**: This endpoint implements x402 payment protocol.
+
+        First request returns 402 with PAYMENT-REQUIRED header containing:
+        - Payment amount in tinybars (1 HBAR = 100,000,000 tinybars)
+        - Payee Hedera account ID
+        - Timeout and network details
+
+        Client must:
+        1. Sign HBAR transfer transaction via HashPack
+        2. Retry request with PAYMENT-SIGNATURE header
+        3. Receive evidence report with PAYMENT-RESPONSE header
+      operationId: generateEvidenceReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - claimId
+              properties:
+                claimId:
+                  type: string
+                  description: Unique claim identifier
+                  example: "claim-demo-001"
+                policyId:
+                  type: string
+                  description: Policy ID (optional)
+                  example: "0x37fa3d9cde09def97e688634b3ba7ee1c51af6418dd24432a03555bd15968025"
+                lookbackSeconds:
+                  type: integer
+                  description: Historical window in seconds
+                  example: 1800
+                  default: 1800
+      parameters:
+        - name: PAYMENT-SIGNATURE
+          in: header
+          required: false
+          schema:
+            type: string
+          description: |
+            x402 payment signature (required on retry after 402 response).
+            Contains signed HBAR transfer transaction.
+      responses:
+        '200':
+          description: Evidence report generated successfully
+          headers:
+            PAYMENT-RESPONSE:
+              schema:
+                type: string
+              description: x402 payment settlement confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claimId:
+                    type: string
+                  report:
+                    $ref: '#/components/schemas/EvidenceReport'
+                  payment:
+                    type: object
+                    properties:
+                      transaction:
+                        type: string
+                        description: Hedera transaction ID
+                      payer:
+                        type: string
+                        description: Payer account ID
+                      network:
+                        type: string
+                        example: hedera:testnet
+        '400':
+          description: Bad request - missing claimId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Payment Required
+          headers:
+            PAYMENT-REQUIRED:
+              schema:
+                type: string
+              description: |
+                x402 payment requirements including:
+                - Amount in tinybars
+                - Payee account ID (0.0.xxxx)
+                - Network (hedera:testnet)
+                - Timeout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Payment required
+                  requirements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        scheme:
+                          type: string
+                          example: exact
+                        network:
+                          type: string
+                          example: hedera:testnet
+                        payTo:
+                          type: string
+                          example: "0.0.1234"
+                        price:
+                          type: object
+                          properties:
+                            asset:
+                              type: string
+                              example: "0.0.0"
+                            amount:
+                              type: string
+                              example: "1000000"
+                        maxTimeoutSeconds:
+                          type: integer
+                          example: 300
+        '502':
+          description: Payment facilitator unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/policies:
+    get:
+      summary: List policies
+      description: List all policies from Hedera PolicyRegistry contract
+      operationId: listPolicies
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 50
+          description: Maximum results per page
+      responses:
+        '200':
+          description: Policies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  policies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+
+  /api/claims:
+    get:
+      summary: List claims
+      description: List all claims from local database
+      operationId: listClaims
+      parameters:
+        - name: policyId
+          in: query
+          schema:
+            type: string
+          description: Filter by policy ID
+      responses:
+        '200':
+          description: Claims retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  claims:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Claim'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    EvidenceReport:
+      type: object
+      properties:
+        depegVerified:
+          type: boolean
+          description: Whether depeg criteria were met
+        lowestObservedPriceUsdMicros:
+          type: integer
+          description: Lowest price observed in USD micros
+        belowThresholdDurationMinutes:
+          type: integer
+          description: Duration price was below threshold
+        liquidityChangeBps:
+          type: integer
+          description: Liquidity change in basis points
+        evidence:
+          type: array
+          items:
+            type: string
+          description: Evidence statements
+        provenance:
+          type: object
+          properties:
+            endpoint:
+              type: string
+            subgraphId:
+              type: string
+            queryHash:
+              type: string
+            fromTimestamp:
+              type: integer
+            toTimestamp:
+              type: integer
+
+    Policy:
+      type: object
+      properties:
+        policyId:
+          type: string
+        policyholder:
+          type: string
+        dataChainId:
+          type: string
+        stablecoinSymbol:
+          type: string
+        stablecoinAddress:
+          type: string
+        referencePoolAddress:
+          type: string
+        thresholdBps:
+          type: integer
+        minimumDurationMinutes:
+          type: integer
+        payoutAmountBaseUnits:
+          type: string
+        payoutTokenSymbol:
+          type: string
+        coverageStart:
+          type: integer
+        coverageEnd:
+          type: integer
+        maxEvidenceBudgetTinybar:
+          type: string
+        active:
+          type: boolean
+        resolved:
+          type: boolean
+
+    Claim:
+      type: object
+      properties:
+        claimId:
+          type: string
+        policyId:
+          type: string
+        status:
+          type: string
+        triggerWindowStart:
+          type: integer
+        triggerWindowEnd:
+          type: integer
+        detectedAt:
+          type: integer
+        lowestPriceUsdMicros:
+          type: integer
+        durationMinutes:
+          type: integer
