@@ -17,7 +17,7 @@ const openApiSpec = {
     },
   ],
   paths: {
-    "/api/graph/snapshot": {
+    "/api/graph/snapshot-mock": {
       post: {
         summary: "Get live stablecoin pool snapshot",
         description: "Free to call. Returns real-time pool data from The Graph.",
