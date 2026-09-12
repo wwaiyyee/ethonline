@@ -1,0 +1,82 @@
+name: EdGraph Stablecoin Depeg Insurance Workflow
+version: 1.0.0
+description: AI agent evaluates stablecoin depeg risk using live Graph data and purchases deeper evidence with HBAR when justified
+
+# Public service URLs
+services:
+  graph_monitor:
+    name: EdGraph Live Pool Monitor
+    type: http_post
+    url: https://edgraph.up.railway.app/api/graph/snapshot
+    authentication: none
+    payment: none
+    description: Real-time stablecoin pool price and liquidity from The Graph
+
+  evidence_api:
+    name: EdGraph Depeg Evidence API
+    type: http_post
+    url: https://edgraph.up.railway.app/api/v1/depeg-evidence
+    authentication: x402
+    payment:
+      network: hedera:testnet
+      asset: 0.0.0
+      amount: 1000000
+      receiver: 0.0.10426282
+    description: Deep evidence analysis with Graph provenance (paid via x402)
+
+# Agent workflow
+workflow:
+  - step: query_live_pool
+    service: graph_monitor
+    input:
+      poolAddress: "0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C"
+      lookbackSeconds: 3600
+    output: risk_snapshot
+    description: Fetch live pool state from The Graph
+
+  - step: evaluate_risk
+    type: agent_decision
+    input: ${risk_snapshot}
+    logic: |
+      Agent evaluates:
+      - Is price deviation > 1%?
+      - Is data fresh (< 5 minutes)?
+      - Is liquidity stable?
+
+      Decision: BUY_EVIDENCE or SKIP_EVIDENCE
+    output: spending_decision
+
+  - step: buy_evidence
+    service: evidence_api
+    condition: ${spending_decision.shouldBuy}
+    payment: true
+    input:
+      policyId: ${policy_id}
+      claimId: ${claim_id}
+      lookbackSeconds: 3600
+    output: evidence_report
+    description: Pay HBAR for deep evidence analysis
+
+  - step: produce_recommendation
+    type: agent_synthesis
+    input:
+      risk_snapshot: ${risk_snapshot}
+      evidence_report: ${evidence_report}
+    output: final_recommendation
+    description: Compare free snapshot with paid evidence, produce recommendation
+
+# Outputs
+outputs:
+  recommendation: ${final_recommendation}
+  evidence_report: ${evidence_report}
+  payment_transaction: ${evidence_report.payment.transaction}
+
+# Notes
+notes: |
+  This workflow demonstrates:
+  1. Free data query (Graph service)
+  2. AI agent spending decision
+  3. Paid evidence purchase (x402 HBAR payment)
+  4. Policy evaluation (deterministic, not auto-approval)
+
+  Human approval required for final claim decisions.
