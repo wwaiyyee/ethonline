@@ -1,12 +1,11 @@
-import { PrivateKey } from "@hiero-ledger/sdk";
 import { x402Client, x402HTTPClient } from "@x402/core/client";
 import type { Network } from "@x402/core/types";
-import { createClientHederaSigner } from "@x402/hedera";
+import { PrivateKey, createClientHederaSigner } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
 import { ensureClaim, updateClaimAgentDecision } from "~~/services/claims/repository";
-import { queryPoolRiskSnapshot, shouldBuyEvidence, type PoolRiskSnapshot } from "~~/services/graph/agentTool";
-import { getPolicy } from "~~/services/policy/repository";
 import { canSpendEvidence, getEvidencePriceTinybar } from "~~/services/claims/spendPolicy";
+import { type PoolRiskSnapshot, queryPoolRiskSnapshot, shouldBuyEvidence } from "~~/services/graph/agentTool";
+import { getPolicy } from "~~/services/policy/repository";
 import type { EvidenceReport, PolicyDecision, PolicyTerms } from "~~/services/policy/types";
 
 type EvidenceResponse = {
@@ -79,7 +78,10 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     throw new Error(`Evidence API expected HTTP 402 before payment, received ${first.status}: ${body}`);
   }
 
-  const challengeBody = await first.clone().json().catch(() => undefined);
+  const challengeBody = await first
+    .clone()
+    .json()
+    .catch(() => undefined);
   const paymentRequired = httpClient.getPaymentRequiredResponse(name => first.headers.get(name), challengeBody);
   const payload = await httpClient.createPaymentPayload(paymentRequired);
   const paymentHeaders = httpClient.encodePaymentSignatureHeader(payload);

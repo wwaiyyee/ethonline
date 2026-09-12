@@ -12,10 +12,9 @@
  *   [X402_NETWORK=hedera:testnet] [OUTPUT=./downloaded.bin] \
  *   yarn x402:buy
  */
-import { PrivateKey } from "@hiero-ledger/sdk";
 import { x402Client, x402HTTPClient } from "@x402/core/client";
 import type { Network } from "@x402/core/types";
-import { createClientHederaSigner } from "@x402/hedera";
+import { PrivateKey, createClientHederaSigner } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
 import { writeFile } from "node:fs/promises";
 
