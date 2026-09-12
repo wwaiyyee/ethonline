@@ -58,7 +58,7 @@ async function tick() {
         });
         console.log(`[edgraph-monitor] Claims agent ${result.action} for ${result.claimId}: ${result.rationale}`);
         if (result.evidence) {
-          console.log(`[edgraph-monitor] Evidence purchased! Decision: ${result.evidence.policyDecision.decision}`);
+          console.log(`[edgraph-monitor] Evidence purchased! Decision: ${result.evidence.policyDecision.outcome}`);
         }
       } catch (error) {
         console.error(`[edgraph-monitor] Claims agent failed for ${candidate.claimId}:`, error);
