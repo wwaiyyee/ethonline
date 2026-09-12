@@ -30,7 +30,7 @@ type ClaimRow = {
 
 function rowToClaim(row: ClaimRow): Claim {
   // Convert created_at string to Unix timestamp
-  const createdAtTimestamp = Math.floor(new Date(row.created_at).getTime() / 1000);
+  const detectedAtTimestamp = Math.floor(new Date(row.created_at).getTime() / 1000);
 
   return {
     claimId: row.claim_id,
@@ -38,7 +38,7 @@ function rowToClaim(row: ClaimRow): Claim {
     status: row.status as Claim["status"],
     triggerWindowStart: row.trigger_window_start,
     triggerWindowEnd: row.trigger_window_end,
-    createdAt: createdAtTimestamp,
+    detectedAt: detectedAtTimestamp,
     lowestPriceUsdMicros: row.lowest_price_usd_micros ?? undefined,
     durationMinutes: row.duration_minutes ?? undefined,
     decision: row.decision_outcome
