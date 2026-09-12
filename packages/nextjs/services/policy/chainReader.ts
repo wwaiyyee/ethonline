@@ -87,5 +87,17 @@ export async function listPoliciesFromHedera(
       args: [BigInt(offset), BigInt(Math.min(limit, 50))],
     }) as Promise<readonly [readonly Hex[], readonly RawPolicy[]]>,
   ]);
-  return { total: Number(total), policies: page[1].map((raw, index) => mapPolicy(page[0][index], raw)) };
+
+  // Filter out excluded test policies
+  const excludedPolicies = new Set(
+    (process.env.EDGRAPH_EXCLUDED_POLICIES || "")
+      .split(",")
+      .map(id => id.trim().toLowerCase())
+      .filter(Boolean),
+  );
+
+  const allPolicies = page[1].map((raw, index) => mapPolicy(page[0][index], raw));
+  const filteredPolicies = allPolicies.filter(policy => !excludedPolicies.has(policy.policyId.toLowerCase()));
+
+  return { total: Number(total), policies: filteredPolicies };
 }
