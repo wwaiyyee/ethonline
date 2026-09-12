@@ -1,0 +1,300 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "EdGraph API",
+    "description": "Stablecoin depeg insurance evidence API with live Graph data monitoring and x402 payment",
+    "version": "1.0.0",
+    "contact": {
+      "name": "EdGraph",
+      "url": "https://edgraph.up.railway.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://edgraph.up.railway.app",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/api/graph/snapshot": {
+      "post": {
+        "summary": "Get live stablecoin pool snapshot",
+        "description": "Queries The Graph for real-time pool price, liquidity, and recent movement. Free to call.",
+        "operationId": "getPoolSnapshot",
+        "tags": ["Graph Monitoring"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "poolAddress": {
+                    "type": "string",
+                    "description": "Uniswap V3 pool address on Base",
+                    "example": "0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C"
+                  },
+                  "lookbackSeconds": {
+                    "type": "integer",
+                    "description": "Time window for price movement calculation",
+                    "example": 3600
+                  }
+                },
+                "required": ["poolAddress"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Live pool snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "currentPriceUsdMicros": {
+                      "type": "integer",
+                      "description": "Current stablecoin price in USD micros (1 USDC = 1000000)"
+                    },
+                    "recentPriceMovementBps": {
+                      "type": "integer",
+                      "description": "Price change in basis points over lookback window"
+                    },
+                    "liquidityChangeBps": {
+                      "type": "integer",
+                      "description": "Liquidity change in basis points"
+                    },
+                    "observationTimestamps": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "description": "Unix timestamps of observations used"
+                    },
+                    "provenance": {
+                      "type": "object",
+                      "properties": {
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "subgraphId": {
+                          "type": "string"
+                        },
+                        "queryHash": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/depeg-evidence": {
+      "post": {
+        "summary": "Purchase depeg evidence report (x402 payment required)",
+        "description": "Returns deep evidence analysis with Graph provenance. Requires payment of 0.01 HBAR (1,000,000 tinybars) via x402 protocol.",
+        "operationId": "buyEvidenceReport",
+        "tags": ["Evidence API"],
+        "security": [
+          {
+            "x402": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "policyId": {
+                    "type": "string",
+                    "description": "Policy ID (bytes32 hex)",
+                    "example": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                  },
+                  "claimId": {
+                    "type": "string",
+                    "description": "Claim identifier",
+                    "example": "claim-001"
+                  },
+                  "lookbackSeconds": {
+                    "type": "integer",
+                    "description": "Historical window for evidence gathering",
+                    "example": 3600
+                  }
+                },
+                "required": ["policyId", "claimId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "402": {
+            "description": "Payment Required - x402 challenge",
+            "headers": {
+              "payment-required": {
+                "description": "Base64-encoded x402 payment requirements",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "x402Version": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "accepts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "scheme": {
+                            "type": "string",
+                            "example": "exact"
+                          },
+                          "network": {
+                            "type": "string",
+                            "example": "hedera:testnet"
+                          },
+                          "amount": {
+                            "type": "string",
+                            "example": "1000000"
+                          },
+                          "asset": {
+                            "type": "string",
+                            "example": "0.0.0"
+                          },
+                          "payTo": {
+                            "type": "string",
+                            "example": "0.0.10426282"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Evidence report (after successful payment)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "claimId": {
+                      "type": "string"
+                    },
+                    "report": {
+                      "type": "object",
+                      "properties": {
+                        "depegVerified": {
+                          "type": "boolean"
+                        },
+                        "lowestObservedPriceUsdMicros": {
+                          "type": "integer"
+                        },
+                        "belowThresholdDurationMinutes": {
+                          "type": "integer"
+                        },
+                        "liquidityChangeBps": {
+                          "type": "integer"
+                        },
+                        "evidence": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "provenance": {
+                          "type": "object",
+                          "properties": {
+                            "endpoint": {
+                              "type": "string"
+                            },
+                            "subgraphId": {
+                              "type": "string"
+                            },
+                            "queryHash": {
+                              "type": "string"
+                            },
+                            "fromTimestamp": {
+                              "type": "integer"
+                            },
+                            "toTimestamp": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "payment": {
+                      "type": "object",
+                      "properties": {
+                        "transaction": {
+                          "type": "string",
+                          "description": "Hedera transaction ID"
+                        },
+                        "payer": {
+                          "type": "string"
+                        },
+                        "network": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "x402": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "PAYMENT-SIGNATURE",
+        "description": "x402 payment protocol - HTTP 402 Payment Required with Hedera HBAR"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Graph Monitoring",
+      "description": "Free live data from The Graph"
+    },
+    {
+      "name": "Evidence API",
+      "description": "Paid evidence reports via x402"
+    }
+  ],
+  "x-x402": {
+    "network": "hedera:testnet",
+    "pricing": {
+      "/api/v1/depeg-evidence": {
+        "amount": "1000000",
+        "asset": "0.0.0",
+        "payTo": "0.0.10426282",
+        "currency": "HBAR",
+        "displayPrice": "$0.01"
+      }
+    }
+  }
+}
