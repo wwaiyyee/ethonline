@@ -20,7 +20,7 @@ const openApiSpec = {
     "/api/graph/snapshot": {
       post: {
         summary: "Get live stablecoin pool snapshot",
-        description: "Free to call",
+        description: "Free to call. Returns real-time pool data from The Graph.",
         operationId: "getPoolSnapshot",
         requestBody: {
           required: true,
@@ -28,12 +28,27 @@ const openApiSpec = {
             "application/json": {
               schema: {
                 type: "object",
+                required: ["poolAddress"],
                 properties: {
-                  poolAddress: { type: "string" },
-                  lookbackSeconds: { type: "integer" },
+                  poolAddress: {
+                    type: "string",
+                    description: "Uniswap V3 pool address on Base",
+                    example: "0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C",
+                  },
+                  lookbackSeconds: {
+                    type: "integer",
+                    description: "Time window for price movement analysis",
+                    example: 3600,
+                    default: 3600,
+                  },
                 },
               },
             },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Live pool snapshot with price and liquidity data",
           },
         },
       },
@@ -41,7 +56,7 @@ const openApiSpec = {
     "/api/v1/depeg-evidence": {
       post: {
         summary: "Purchase depeg evidence (x402 payment required)",
-        description: "Requires 0.01 HBAR payment via x402",
+        description: "Requires 0.01 HBAR payment via x402. Returns deep evidence analysis.",
         operationId: "buyEvidence",
         requestBody: {
           required: true,
@@ -49,13 +64,35 @@ const openApiSpec = {
             "application/json": {
               schema: {
                 type: "object",
+                required: ["policyId", "claimId"],
                 properties: {
-                  policyId: { type: "string" },
-                  claimId: { type: "string" },
-                  lookbackSeconds: { type: "integer" },
+                  policyId: {
+                    type: "string",
+                    description: "Insurance policy identifier (bytes32 hex)",
+                    example: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                  },
+                  claimId: {
+                    type: "string",
+                    description: "Unique claim identifier",
+                    example: "claim-001",
+                  },
+                  lookbackSeconds: {
+                    type: "integer",
+                    description: "Historical window for evidence gathering",
+                    example: 3600,
+                    default: 3600,
+                  },
                 },
               },
             },
+          },
+        },
+        responses: {
+          "402": {
+            description: "Payment Required - x402 challenge",
+          },
+          "200": {
+            description: "Evidence report (after successful payment)",
           },
         },
       },
