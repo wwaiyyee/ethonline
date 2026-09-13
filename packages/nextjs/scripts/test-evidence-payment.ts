@@ -97,7 +97,7 @@ async function main() {
   }
 
   const body = result.body as any;
-  const txId = body.payment?.transaction || result.settleResponse?.transaction || "unknown";
+  const txId = body.payment?.transaction || (result as any).settleResponse?.transaction || "unknown";
   console.log(`[test-evidence] ✅ Payment settled · tx ${txId}`);
   console.log(`[test-evidence] Evidence:`, JSON.stringify(body, null, 2));
   console.log(`[test-evidence] Verify on HashScan: https://hashscan.io/testnet/transaction/${txId}`);
