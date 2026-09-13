@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { PolicyRegistryNotDeployedError, listPoliciesFromHedera } from "~~/services/policy/chainReader";
-import { upsertPolicy } from "~~/services/policy/repository";
+import { listPolicies } from "~~/services/policy/repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,16 +23,15 @@ export async function GET(req: Request) {
   }
   try {
     console.log("[api/policies] Fetching policies with offset", offset, "limit", limit);
-    const result = await listPoliciesFromHedera(offset, limit);
-    console.log("[api/policies] Got", result.policies.length, "policies, total", result.total);
-    result.policies.forEach(upsertPolicy);
-    return NextResponse.json(result);
+    const allPolicies = listPolicies();
+    const total = allPolicies.length;
+    const policies = allPolicies.slice(offset, offset + limit);
+    console.log("[api/policies] Got", policies.length, "policies, total", total);
+    return NextResponse.json({ policies, total });
   } catch (error) {
-    if (error instanceof PolicyRegistryNotDeployedError)
-      return NextResponse.json({ error: error.message }, { status: 503 });
     console.error("[api/policies] read failed", error);
     console.error("[api/policies] error details:", error instanceof Error ? error.stack : String(error));
-    return NextResponse.json({ error: "Failed to read policies" }, { status: 502 });
+    return NextResponse.json({ error: "Failed to read policies from database" }, { status: 500 });
   }
 }
 

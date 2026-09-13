@@ -1,0 +1,13 @@
+#!/bin/bash
+echo "Checking Railway environment variables..."
+echo ""
+echo "Required variables for EdGraph:"
+echo "  POLICY_REGISTRY_ADDRESS"
+echo "  POLICY_REGISTRY_HEDERA_CONTRACT_ID" 
+echo "  FILE_REGISTRY_ADDRESS"
+echo "  FILE_REGISTRY_HEDERA_CONTRACT_ID"
+echo "  EDGRAPH_DB_PATH"
+echo "  HEDERA_RPC_URL"
+echo ""
+echo "Run: railway variables"
+echo "Or set them via Railway dashboard or CLI"
