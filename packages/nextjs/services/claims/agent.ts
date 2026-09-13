@@ -109,7 +109,7 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
   const privateKey = PrivateKey.fromStringECDSA(required("EDGRAPH_AGENT_PRIVATE_KEY"));
   const network = (process.env.X402_NETWORK ?? "hedera:testnet") as Network;
   const signer = createClientHederaSigner(accountId, privateKey, { network });
-  const client = new x402Client().register(network, new ExactHederaScheme(signer));
+  const client = new x402Client({ spendControls: false }).register(network, new ExactHederaScheme(signer));
   const httpClient = new x402HTTPClient(client);
   const evidenceUrl = makeEvidenceUrl();
   const requestBody = { policyId: policy.policyId, claimId };
@@ -132,11 +132,24 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     .json()
     .catch(() => undefined);
   const paymentRequired = httpClient.getPaymentRequiredResponse(name => first.headers.get(name), challengeBody);
+
+  // Handle both 'options' and 'accepts' field names (version compatibility)
+  const paymentOptions =
+    paymentRequired.options ||
+    (challengeBody?.accepts ? { ...paymentRequired, options: challengeBody.accepts } : paymentRequired);
+
+  if (!paymentOptions.options || paymentOptions.options.length === 0) {
+    console.error(`[Agent] No payment options found in 402 response`);
+    console.error(`[Agent] Headers:`, Array.from(first.headers.entries()));
+    console.error(`[Agent] Body:`, challengeBody);
+    throw new Error(`Evidence API returned 402 but no valid payment options`);
+  }
+
   console.log(
-    `[Agent] Payment requirements: ${paymentRequired.options[0]?.price.amount} tinybars to ${paymentRequired.options[0]?.payTo}`,
+    `[Agent] Payment requirements: ${paymentOptions.options[0].price?.amount || paymentOptions.options[0].amount} tinybars to ${paymentOptions.options[0].payTo}`,
   );
 
-  const payload = await httpClient.createPaymentPayload(paymentRequired);
+  const payload = await httpClient.createPaymentPayload(paymentOptions);
   console.log(`[Agent] Signing HBAR transfer...`);
 
   const paymentHeaders = httpClient.encodePaymentSignatureHeader(payload);

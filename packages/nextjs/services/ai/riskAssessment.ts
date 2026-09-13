@@ -114,12 +114,12 @@ async function assessWithGemini(
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-3.6-flash",
   });
 
   const prompt = buildRiskAssessmentPrompt(snapshot, policy, budgetRemaining, priceUsd, thresholdUsd, evidenceCost);
 
-  console.log(`[AI] Querying Gemini 2.0 Flash for risk assessment...`);
+  console.log(`[AI] Querying Gemini 3.6 Flash for risk assessment...`);
   const result = await model.generateContent(prompt);
   const response = result.response;
   let text = response.text();
