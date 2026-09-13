@@ -12,6 +12,7 @@ export async function GET() {
       endpoints: {
         graphMonitor: "/api/graph/snapshot-mock",
         evidenceAPI: "/api/v1/depeg-evidence",
+        evidenceAPIFree: "/api/v1/depeg-evidence-free",
         openapi: "/api/openapi",
       },
     },

@@ -97,6 +97,41 @@ const openApiSpec = {
         },
       },
     },
+    "/api/v1/depeg-evidence-free": {
+      post: {
+        summary: "Get depeg evidence (FREE for demo)",
+        description: "Free to call. Returns mock evidence data for Bazantic demo.",
+        operationId: "buyEvidenceFree",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["policyId", "claimId"],
+                properties: {
+                  policyId: {
+                    type: "string",
+                    description: "Insurance policy identifier (bytes32 hex)",
+                    example: "0x37fa3d9cde09def97e688634b3ba7ee1c51af6418dd24432a03555bd15968025",
+                  },
+                  claimId: {
+                    type: "string",
+                    description: "Unique claim identifier",
+                    example: "claim-001",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Evidence report with mock depeg data",
+          },
+        },
+      },
+    },
   },
 };
 
