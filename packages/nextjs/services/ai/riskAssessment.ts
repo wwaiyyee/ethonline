@@ -167,7 +167,7 @@ function buildRiskAssessmentPrompt(
 POLICY TERMS:
 - Stablecoin: ${policy.stablecoinSymbol}
 - Depeg Threshold: $${thresholdUsd.toFixed(4)} (${policy.thresholdBps} bps below $1.00)
-- Minimum Duration: ${policy.durationMinutes} minutes
+- Minimum Duration: ${policy.minimumDurationMinutes} minutes
 - Coverage Period: ${new Date(policy.coverageStart * 1000).toISOString()} to ${new Date(policy.coverageEnd * 1000).toISOString()}
 - Max Payout: ${policy.payoutAmountBaseUnits} ${policy.payoutTokenSymbol}
 

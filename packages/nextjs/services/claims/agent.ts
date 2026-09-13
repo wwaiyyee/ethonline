@@ -92,7 +92,7 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     // Store snapshot data so UI can display price and duration even when evidence is skipped
     updateClaimWithSnapshotData(
       claimId,
-      snapshot.priceUsdMicros,
+      snapshot.currentPriceUsdMicros,
       0, // Duration is 0 since we're not tracking a depeg event
     );
 
@@ -108,8 +108,8 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
   const accountId = required("EDGRAPH_AGENT_ACCOUNT_ID");
   const privateKey = PrivateKey.fromStringECDSA(required("EDGRAPH_AGENT_PRIVATE_KEY"));
   const network = (process.env.X402_NETWORK ?? "hedera:testnet") as Network;
-  const signer = createClientHederaSigner(accountId, privateKey, { network });
-  const client = new x402Client({ spendControls: false }).register(network, new ExactHederaScheme(signer));
+  const signer = createClientHederaSigner(accountId, privateKey as any, { network });
+  const client = new x402Client().setSpendControls(false).register(network, new ExactHederaScheme(signer));
   const httpClient = new x402HTTPClient(client);
   const evidenceUrl = makeEvidenceUrl();
   const requestBody = { policyId: policy.policyId, claimId };
@@ -133,23 +133,7 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     .catch(() => undefined);
   const paymentRequired = httpClient.getPaymentRequiredResponse(name => first.headers.get(name), challengeBody);
 
-  // Handle both 'options' and 'accepts' field names (version compatibility)
-  const paymentOptions =
-    paymentRequired.options ||
-    (challengeBody?.accepts ? { ...paymentRequired, options: challengeBody.accepts } : paymentRequired);
-
-  if (!paymentOptions.options || paymentOptions.options.length === 0) {
-    console.error(`[Agent] No payment options found in 402 response`);
-    console.error(`[Agent] Headers:`, Array.from(first.headers.entries()));
-    console.error(`[Agent] Body:`, challengeBody);
-    throw new Error(`Evidence API returned 402 but no valid payment options`);
-  }
-
-  console.log(
-    `[Agent] Payment requirements: ${paymentOptions.options[0].price?.amount || paymentOptions.options[0].amount} tinybars to ${paymentOptions.options[0].payTo}`,
-  );
-
-  const payload = await httpClient.createPaymentPayload(paymentOptions);
+  const payload = await httpClient.createPaymentPayload(paymentRequired);
   console.log(`[Agent] Signing HBAR transfer...`);
 
   const paymentHeaders = httpClient.encodePaymentSignatureHeader(payload);
@@ -162,11 +146,29 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
   });
 
   const result = await httpClient.processResponse(paid);
-  if (result.kind !== "success") {
-    throw new Error(`Evidence payment failed: ${result.kind}`);
+  const isSettled = result.paymentStatus === "settled" || (result as unknown as { kind?: string }).kind === "success";
+  const settle =
+    (result.header && "transaction" in result.header
+      ? (result.header as { transaction?: string; payer?: string; network?: string; errorReason?: string })
+      : undefined) ??
+    (
+      result as unknown as {
+        settleResponse?: { transaction?: string; payer?: string; network?: string; errorReason?: string };
+      }
+    ).settleResponse;
+
+  if (!isSettled || !paid.ok) {
+    const errorReason =
+      settle?.errorReason ??
+      (result.header && "error" in result.header ? (result.header as { error?: string }).error : undefined) ??
+      result.paymentStatus ??
+      (result as unknown as { kind?: string }).kind;
+    throw new Error(`Evidence payment failed: ${errorReason}`);
   }
 
-  console.log(`[Agent] Payment settled: tx ${result.settleResponse.transaction}`);
+  if (settle?.transaction) {
+    console.log(`[Agent] Payment settled: tx ${settle.transaction}`);
+  }
   console.log(`[Agent] Evidence received!`);
 
   const evidence = result.body as EvidenceResponse;
@@ -178,26 +180,22 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
   console.log(`[Agent] Reasons: ${policyDecision.reasons.join("; ")}`);
 
   if (policyDecision.outcome === "ELIGIBLE_RECOMMENDATION") {
-    console.log(
-      `[Agent] Recommended payout: ${policyDecision.recommendedPayoutAmountBaseUnits} ${policy.payoutTokenSymbol}`,
-    );
-  }
+    // Check if auto-approve is enabled in environment
+    const autoApprove = process.env.AI_AUTO_APPROVE === "true";
+    const autoApproveThreshold = parseInt(process.env.AI_AUTO_APPROVE_CONFIDENCE_THRESHOLD || "90", 10);
 
-  // Step 6: AI Auto-Approval (if enabled and confidence is high)
-  const autoApprove = process.env.AI_AUTO_APPROVE === "true";
-  const autoApproveThreshold = parseInt(process.env.AI_AUTO_APPROVE_CONFIDENCE_THRESHOLD || "90", 10);
-
-  if (autoApprove && policyDecision.outcome === "ELIGIBLE_RECOMMENDATION") {
-    // Check if AI confidence is high enough for auto-approval
-    const aiConfidence = policyDecision.confidence || 0;
-    if (aiConfidence >= autoApproveThreshold) {
-      console.log(`[Agent] AI confidence (${aiConfidence}%) >= threshold (${autoApproveThreshold}%)`);
-      console.log(`[Agent] AUTO-APPROVING claim ${claimId}`);
-      policyDecision.outcome = "ELIGIBLE";
-      policyDecision.reasons.push(`Auto-approved by AI (confidence: ${aiConfidence}%)`);
-    } else {
-      console.log(`[Agent] AI confidence (${aiConfidence}%) < threshold (${autoApproveThreshold}%)`);
-      console.log(`[Agent] Keeping ELIGIBLE_RECOMMENDATION - requires human review`);
+    if (autoApprove && policyDecision.outcome === "ELIGIBLE_RECOMMENDATION") {
+      // Check if AI confidence is high enough for auto-approval
+      const aiConfidence = policyDecision.confidence || 0;
+      if (aiConfidence >= autoApproveThreshold) {
+        console.log(`[Agent] AI confidence (${aiConfidence}%) >= threshold (${autoApproveThreshold}%)`);
+        console.log(`[Agent] AUTO-APPROVING claim ${claimId}`);
+        policyDecision.outcome = "ELIGIBLE";
+        policyDecision.reasons.push(`Auto-approved by AI (confidence: ${aiConfidence}%)`);
+      } else {
+        console.log(`[Agent] AI confidence (${aiConfidence}%) < threshold (${autoApproveThreshold}%)`);
+        console.log(`[Agent] Keeping ELIGIBLE_RECOMMENDATION - requires human review`);
+      }
     }
   }
 
@@ -213,10 +211,14 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     rationale: aiDecision.rationale,
     evidence,
     policyDecision,
-    settlement: evidence.payment ?? {
-      transaction: result.settleResponse.transaction,
-      payer: result.settleResponse.payer,
-      network: result.settleResponse.network,
-    },
+    settlement:
+      evidence.payment ??
+      (settle
+        ? {
+            transaction: settle.transaction,
+            payer: settle.payer,
+            network: settle.network,
+          }
+        : undefined),
   };
 }

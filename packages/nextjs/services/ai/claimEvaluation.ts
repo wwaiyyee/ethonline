@@ -151,31 +151,38 @@ async function evaluateWithGemini(policy: PolicyTerms, evidence: EvidenceReport)
 function buildClaimEvaluationPrompt(policy: PolicyTerms, evidence: EvidenceReport): string {
   const priceUsd = evidence.lowestObservedPriceUsdMicros / 1_000_000;
   const thresholdUsd = (policy.thresholdBps / 10_000) * 1.0;
-  const durationMinutes = Math.floor(evidence.depegDurationSeconds / 60);
+  const durationMinutes = evidence.belowThresholdDurationMinutes ?? 0;
+  const fromTime = evidence.provenance?.fromTimestamp
+    ? new Date(evidence.provenance.fromTimestamp * 1000).toISOString()
+    : "N/A";
+  const toTime = evidence.provenance?.toTimestamp
+    ? new Date(evidence.provenance.toTimestamp * 1000).toISOString()
+    : "N/A";
 
   return `You are an AI claims evaluator for a decentralized depeg insurance protocol on Hedera. Evaluate this claim against the policy terms.
 
 POLICY TERMS:
 - Stablecoin: ${policy.stablecoinSymbol}
 - Depeg Threshold: $${thresholdUsd.toFixed(4)} (${policy.thresholdBps} bps below $1.00)
-- Minimum Duration: ${policy.durationMinutes} minutes
+- Minimum Duration: ${policy.minimumDurationMinutes} minutes
 - Coverage Period: ${new Date(policy.coverageStart * 1000).toISOString()} to ${new Date(policy.coverageEnd * 1000).toISOString()}
 - Max Payout: ${policy.payoutAmountBaseUnits} ${policy.payoutTokenSymbol}
 
 EVIDENCE REPORT:
+- Depeg Verified: ${evidence.depegVerified}
 - Lowest Price: $${priceUsd.toFixed(6)}
-- Depeg Duration: ${durationMinutes} minutes (${evidence.depegDurationSeconds} seconds)
-- Observations: ${evidence.observationCount}
-- Time Range: ${new Date(evidence.firstObservationTimestamp * 1000).toISOString()} to ${new Date(evidence.lastObservationTimestamp * 1000).toISOString()}
-- Source: ${evidence.sourceName}
-- Content Hash: ${evidence.contentHash}
+- Depeg Duration: ${durationMinutes} minutes
+- Liquidity Change: ${evidence.liquidityChangeBps} bps
+- Time Range: ${fromTime} to ${toTime}
+- Provenance Source: ${evidence.provenance?.endpoint ?? "the-graph"} (Query Hash: ${evidence.provenance?.queryHash ?? "N/A"})
+- Evidence Notes: ${evidence.evidence?.join("; ") || "None"}
 
 EVALUATION CRITERIA:
 1. Does the lowest observed price ($${priceUsd.toFixed(6)}) meet or fall below the threshold ($${thresholdUsd.toFixed(4)})?
-2. Did the depeg last for at least ${policy.durationMinutes} minutes? (Evidence shows ${durationMinutes} minutes)
+2. Did the depeg last for at least ${policy.minimumDurationMinutes} minutes? (Evidence shows ${durationMinutes} minutes)
 3. Did this happen within the coverage period?
-- Is the data provenance complete and trustworthy?
-- Are there any red flags (extreme liquidity crash, data gaps, etc.)?
+4. Is the data provenance complete and trustworthy?
+5. Are there any red flags (extreme liquidity crash, data gaps, etc.)?
 
 Respond with JSON in this exact format:
 {

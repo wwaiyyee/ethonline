@@ -22,7 +22,7 @@ export type PaidDownload = {
 async function buildHttpClient(signer: ClientHederaSigner) {
   const [clientScheme, core] = await Promise.all([import("@x402/hedera/exact/client"), import("@x402/core/client")]);
   const scheme = new clientScheme.ExactHederaScheme(signer);
-  const x402Client = new core.x402Client().register(X402_CLIENT_NETWORK as never, scheme);
+  const x402Client = new core.x402Client().setSpendControls(false).register(X402_CLIENT_NETWORK as never, scheme);
   return new core.x402HTTPClient(x402Client);
 }
 
@@ -76,23 +76,35 @@ export async function payAndGetDownloadUrl(params: {
   const paid = await fetch(params.resourceUrl, { headers: paymentHeaders });
   const result = await httpClient.processResponse(paid);
 
-  switch (result.kind) {
-    case "success": {
-      const body = result.body as { url?: string };
-      if (!body?.url) throw new Error("Payment succeeded but no download URL was returned");
-      return { url: body.url, transaction: result.settleResponse.transaction, payer: result.settleResponse.payer };
-    }
-    case "settle_failed":
-      throw new Error(`Payment settlement failed: ${result.settleResponse.errorReason ?? "unknown"}`);
-    case "payment_required": {
-      const reason = (result.paymentRequired as { error?: string })?.error ?? "Payment was rejected by the server";
-      throw new Error(reason);
-    }
-    case "error": {
-      const body = result.body as { error?: string };
-      throw new Error(body?.error ?? `Download failed with status ${result.status}`);
-    }
-    default:
-      throw new Error("Unexpected response from server");
+  const isSuccess = result.paymentStatus === "settled" || (result as unknown as { kind?: string }).kind === "success";
+  const settle =
+    (result.header && "transaction" in result.header
+      ? (result.header as { transaction?: string; payer?: string; errorReason?: string })
+      : undefined) ??
+    (result as unknown as { settleResponse?: { transaction?: string; payer?: string; errorReason?: string } })
+      .settleResponse;
+
+  if (isSuccess) {
+    const body = result.body as { url?: string };
+    if (!body?.url) throw new Error("Payment succeeded but no download URL was returned");
+    return { url: body.url, transaction: settle?.transaction, payer: settle?.payer };
   }
+
+  if (result.paymentStatus === "settle_failed" || (result as unknown as { kind?: string }).kind === "settle_failed") {
+    throw new Error(`Payment settlement failed: ${settle?.errorReason ?? "unknown"}`);
+  }
+
+  if (
+    result.paymentStatus === "payment_required" ||
+    (result as unknown as { kind?: string }).kind === "payment_required"
+  ) {
+    const reason =
+      (result.header as { error?: string })?.error ??
+      (result as unknown as { paymentRequired?: { error?: string } })?.paymentRequired?.error ??
+      "Payment was rejected by the server";
+    throw new Error(reason);
+  }
+
+  const body = result.body as { error?: string };
+  throw new Error(body?.error ?? `Download failed with status ${result.status}`);
 }

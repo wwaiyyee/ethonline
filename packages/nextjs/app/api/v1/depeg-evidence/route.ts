@@ -6,9 +6,10 @@ import {
 } from "@x402/core/http";
 import type { PaymentRequirements, ResourceInfo } from "@x402/core/types";
 import { createHash } from "node:crypto";
+import { getClaimById } from "~~/services/claims/repository";
 import { recordEvidenceAudit } from "~~/services/evidence/repository";
 import { buildDepegEvidence } from "~~/services/graph/evidence";
-import { getPolicy } from "~~/services/policy/repository";
+import { getPolicy, listPolicies } from "~~/services/policy/repository";
 import type { EvidenceReport } from "~~/services/policy/types";
 import {
   HBAR_ASSET,
@@ -47,14 +48,7 @@ async function generateEvidenceReport(policyId: string, claimId: string): Promis
   return report;
 }
 
-export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  const claimId = typeof body?.claimId === "string" && body.claimId.trim() ? body.claimId.trim() : null;
-  const policyId = typeof body?.policyId === "string" && body.policyId.trim() ? body.policyId.trim() : null;
-
-  if (!claimId) return NextResponse.json({ error: "claimId is required" }, { status: 400 });
-  if (!policyId) return NextResponse.json({ error: "policyId is required" }, { status: 400 });
-
+async function handleEvidenceRequest(req: Request) {
   const { context, resourceUrl } = makeHttpContext(req);
   let server;
   try {
@@ -78,6 +72,7 @@ export async function POST(req: Request) {
   );
   const info = { ...resourceInfo, url: resourceUrl };
   if (!context.paymentHeader) return challenge(server, requirements, info);
+
   let payload;
   try {
     payload = decodePaymentSignatureHeader(context.paymentHeader);
@@ -92,6 +87,41 @@ export async function POST(req: Request) {
   const settlement = await server.settlePayment(payload, matched);
   if (!settlement.success)
     return NextResponse.json({ error: "Payment settlement failed", reason: settlement.errorReason }, { status: 402 });
+
+  // Extract claimId and policyId from JSON body or URL search parameters
+  const url = new URL(req.url);
+  let body: Record<string, unknown> | null = null;
+  if (req.method === "POST") {
+    body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  }
+
+  const claimId =
+    (typeof body?.claimId === "string" && body.claimId.trim() ? body.claimId.trim() : null) ||
+    url.searchParams.get("claimId")?.trim() ||
+    `claim-${Date.now()}`;
+
+  let policyId =
+    (typeof body?.policyId === "string" && body.policyId.trim() ? body.policyId.trim() : null) ||
+    url.searchParams.get("policyId")?.trim() ||
+    null;
+
+  if (!policyId && claimId) {
+    const claim = getClaimById(claimId);
+    if (claim?.policy_id) {
+      policyId = claim.policy_id;
+    }
+  }
+
+  if (!policyId) {
+    const policies = listPolicies();
+    if (policies.length > 0) {
+      policyId = policies[0].policyId;
+    }
+  }
+
+  if (!policyId) {
+    return NextResponse.json({ error: "policyId is required and no active policies found" }, { status: 400 });
+  }
 
   // Generate real evidence from live Graph data
   const report = await generateEvidenceReport(policyId, claimId);
@@ -113,6 +143,14 @@ export async function POST(req: Request) {
   });
   response.headers.set("PAYMENT-RESPONSE", encodePaymentResponseHeader(settlement));
   return response;
+}
+
+export async function GET(req: Request) {
+  return handleEvidenceRequest(req);
+}
+
+export async function POST(req: Request) {
+  return handleEvidenceRequest(req);
 }
 
 async function challenge(

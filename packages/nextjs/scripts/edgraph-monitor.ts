@@ -6,32 +6,37 @@ import { getDb } from "~~/services/db/client";
 import { monitorPolicy } from "~~/services/graph/monitor";
 import { listActivePolicies } from "~~/services/policy/repository";
 
-// Load .env file manually
-const envPath = join(process.cwd(), ".env");
-try {
-  const envContent = readFileSync(envPath, "utf-8");
-  console.log(`[edgraph-monitor] Loading .env from: ${envPath}`);
-  let loadedCount = 0;
-  envContent.split("\n").forEach(line => {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("---")) return;
-    const [key, ...valueParts] = trimmed.split("=");
-    if (key && valueParts.length > 0) {
-      const value = valueParts.join("=").trim();
-      // Always load critical agent credentials
-      if (key.startsWith("EDGRAPH_") || key.startsWith("GEMINI_") || key.startsWith("X402_")) {
-        process.env[key] = value;
-        loadedCount++;
-        console.log(`[edgraph-monitor] Loaded: ${key}=${value.substring(0, 20)}...`);
-      } else if (!process.env[key]) {
-        process.env[key] = value;
+// Load .env files (both root and packages/nextjs)
+const envPaths = [join(process.cwd(), ".env"), join(process.cwd(), "packages/nextjs/.env"), join(__dirname, "../.env")];
+let loadedCount = 0;
+for (const envPath of envPaths) {
+  try {
+    const envContent = readFileSync(envPath, "utf-8");
+    envContent.split("\n").forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("---")) return;
+      const [key, ...valueParts] = trimmed.split("=");
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join("=").trim();
+        if (
+          key.startsWith("EDGRAPH_") ||
+          key.startsWith("GEMINI_") ||
+          key.startsWith("ANTHROPIC_") ||
+          key.startsWith("AI_") ||
+          key.startsWith("X402_")
+        ) {
+          process.env[key] = value;
+          loadedCount++;
+        } else if (!process.env[key]) {
+          process.env[key] = value;
+        }
       }
-    }
-  });
-  console.log(`[edgraph-monitor] Loaded ${loadedCount} critical environment variables`);
-} catch (error: any) {
-  console.error("Warning: Could not load .env file:", error.message);
+    });
+  } catch {
+    // optional path
+  }
 }
+console.log(`[edgraph-monitor] Loaded ${loadedCount} environment variables`);
 
 const intervalMs = Math.max(15_000, Number(process.env.EDGRAPH_MONITOR_INTERVAL_MS ?? 60_000));
 
@@ -66,8 +71,8 @@ async function tick() {
           claimId: candidate.claimId,
         });
         console.log(`[edgraph-monitor] Claims agent ${result.action} for ${result.claimId}: ${result.rationale}`);
-        if (result.evidence) {
-          console.log(`[edgraph-monitor] Evidence purchased! Decision: ${result.evidence.policyDecision.decision}`);
+        if (result.policyDecision) {
+          console.log(`[edgraph-monitor] Decision: ${result.policyDecision.outcome}`);
         }
       } catch (error) {
         console.error(`[edgraph-monitor] Claims agent failed for ${candidate.claimId}:`, error);
@@ -86,6 +91,7 @@ async function tick() {
          FROM claims c
          JOIN policies p ON c.policy_id = p.policy_id
          WHERE (c.status = 'POTENTIAL_CLAIM' AND c.agent_action IS NULL)
+            OR (c.status = 'INVESTIGATING' AND c.policy_decision_json IS NULL)
             OR (c.status = 'EVIDENCE_PENDING' AND NOT EXISTS (
               SELECT 1 FROM evidence e WHERE e.claim_id = c.claim_id
             ))
@@ -105,8 +111,8 @@ async function tick() {
           claimId: claim.claim_id,
         });
         console.log(`[edgraph-monitor] Stuck claim processed: ${result.action}`);
-        if (result.evidence) {
-          console.log(`[edgraph-monitor] Evidence purchased! Decision: ${result.policyDecision?.decision}`);
+        if (result.policyDecision) {
+          console.log(`[edgraph-monitor] Decision: ${result.policyDecision.outcome}`);
         }
       } catch (error) {
         console.error(`[edgraph-monitor] Failed to process stuck claim ${claim.claim_id}:`, error);

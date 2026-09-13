@@ -54,7 +54,7 @@ export function detectDepegCandidate(policy: PolicyTerms): ClaimCandidate | null
     .prepare(
       `SELECT claim_id FROM claims
        WHERE policy_id = ?
-       AND status NOT IN ('REJECTED', 'APPROVED')
+       AND status NOT IN ('REJECTED', 'APPROVED', 'INVESTIGATING_COMPLETE')
        LIMIT 1`,
     )
     .get(policy.policyId);
