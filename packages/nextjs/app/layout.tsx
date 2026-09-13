@@ -1,5 +1,5 @@
 import "@scaffold-hbar-ui/components/styles.css";
-import { ScaffoldHbarAppWithProviders } from "~~/components/ScaffoldHbarAppWithProviders";
+import { ClientProviders } from "~~/components/ClientProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-hbar/getMetadata";
@@ -9,15 +9,12 @@ export const metadata = getMetadata({
   description: "Live Graph-backed stablecoin coverage operations with Hedera x402 evidence.",
 });
 
-// Force dynamic rendering for all pages to avoid WalletConnect ES module issues
-export const dynamic = "force-dynamic";
-
 const ScaffoldHbarApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
       <body>
         <ThemeProvider enableSystem>
-          <ScaffoldHbarAppWithProviders>{children}</ScaffoldHbarAppWithProviders>
+          <ClientProviders>{children}</ClientProviders>
         </ThemeProvider>
       </body>
     </html>
