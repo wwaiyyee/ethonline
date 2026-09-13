@@ -25,7 +25,6 @@ const nextConfig: NextConfig = {
       porto: false,
       "porto/internal": false,
       "@metamask/connect-evm": path.join(__dirname, "stubs/metamask-connect-evm.js"),
-      "@walletconnect/modal": "@walletconnect/modal/dist/index.js",
     };
 
     config.resolve.fallback = {
