@@ -39,6 +39,7 @@ export async function GET() {
       return {
         policy: {
           policyId: policy.policyId,
+          policyholder: policy.policyholder,
           stablecoinSymbol: policy.stablecoinSymbol,
           thresholdBps: policy.thresholdBps,
           minimumDurationMinutes: policy.minimumDurationMinutes,

@@ -26,6 +26,10 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Claims",
     href: "/claims",
   },
+  {
+    label: "EdGraph Monitor",
+    href: "/edgraph",
+  },
 ];
 
 export const HeaderMenuLinks = () => {
