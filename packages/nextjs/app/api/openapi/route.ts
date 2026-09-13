@@ -17,11 +17,47 @@ const openApiSpec = {
     },
   ],
   paths: {
-    "/api/graph/snapshot-mock": {
+    "/api/graph/snapshot": {
       post: {
         summary: "Get live stablecoin pool snapshot",
-        description: "Free to call. Returns real-time pool data from The Graph.",
+        description: "Free to call. Returns real-time pool data from The Graph on Ethereum mainnet.",
         operationId: "getPoolSnapshot",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["poolAddress"],
+                properties: {
+                  poolAddress: {
+                    type: "string",
+                    description: "Uniswap V3 pool address on Ethereum",
+                    example: "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+                  },
+                  lookbackSeconds: {
+                    type: "integer",
+                    description: "Time window for price movement analysis",
+                    example: 3600,
+                    default: 3600,
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Live pool snapshot with price and liquidity data",
+          },
+        },
+      },
+    },
+    "/api/graph/snapshot-mock": {
+      post: {
+        summary: "Get mock stablecoin pool snapshot",
+        description: "Free to call. Returns mock pool data for demo.",
+        operationId: "getPoolSnapshotMock",
         requestBody: {
           required: true,
           content: {
