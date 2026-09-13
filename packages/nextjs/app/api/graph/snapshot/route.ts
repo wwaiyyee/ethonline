@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { queryPoolRiskSnapshot } from "~~/services/graph/agentTool";
+import { GraphConfigurationError } from "~~/services/graph/config";
 import { upsertObservation } from "~~/services/observations/repository";
-import { getPolicy } from "~~/services/policy/repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,9 +34,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ...snapshot, observation });
   } catch (error) {
     console.error("[api/graph/snapshot] live query failed", error);
+
+    // If Graph is not configured, return helpful error instead of crashing
+    if (error instanceof GraphConfigurationError) {
+      return NextResponse.json(
+        {
+          error:
+            "The Graph configuration is missing. Use /api/graph/snapshot-mock for demo data, or set EDGRAPH_GRAPH_API_KEY and related env vars.",
+          details: error.message,
+          suggestion: "For Bazantic demo, use the mock endpoint: /api/graph/snapshot-mock",
+        },
+        { status: 503 }, // Service Unavailable (not 502 which crashes Railway)
+      );
+    }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Live Graph query failed." },
-      { status: 502 },
+      { status: 500 },
     );
   }
 }
