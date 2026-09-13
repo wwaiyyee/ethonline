@@ -51,7 +51,6 @@ export default function EdGraphDashboard() {
 
       <div className="mb-6 flex flex-wrap gap-3 text-sm">
         <span className="badge badge-success gap-2 py-3">LIVE GRAPH DATA</span>
-        <span className="badge badge-ghost gap-2 py-3">REPLAY DATA is never presented as live</span>
       </div>
 
       {error ? <div className="alert alert-warning">{error}</div> : null}
