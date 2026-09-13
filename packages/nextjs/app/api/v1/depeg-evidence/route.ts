@@ -82,13 +82,24 @@ export async function POST(req: Request) {
     return challenge(server, requirements, info, "Malformed payment header");
   }
   const matched = server.findMatchingRequirements(requirements, payload);
-  if (!matched) return challenge(server, requirements, info, "Payment does not match requirements");
+  if (!matched) {
+    console.error("[depeg-evidence] Payment does not match requirements", { payload, requirements });
+    return challenge(server, requirements, info, "Payment does not match requirements");
+  }
+  console.log("[depeg-evidence] Verifying payment...", { matched });
   const verification = await server.verifyPayment(payload, matched);
-  if (!verification.isValid)
+  console.log("[depeg-evidence] Verification result:", verification);
+  if (!verification.isValid) {
+    console.error("[depeg-evidence] Payment verification failed:", verification.invalidReason);
     return challenge(server, requirements, info, verification.invalidReason ?? "Payment is not valid");
+  }
+  console.log("[depeg-evidence] Settling payment...");
   const settlement = await server.settlePayment(payload, matched);
-  if (!settlement.success)
+  console.log("[depeg-evidence] Settlement result:", settlement);
+  if (!settlement.success) {
+    console.error("[depeg-evidence] Payment settlement failed:", settlement.errorReason);
     return NextResponse.json({ error: "Payment settlement failed", reason: settlement.errorReason }, { status: 402 });
+  }
   const report = reportFor(claimId, body ?? {});
   const paymentId = createHash("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 32);
   recordEvidenceAudit({
