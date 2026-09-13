@@ -16,33 +16,33 @@ export async function POST(req: Request) {
   const lookbackSeconds = body.lookbackSeconds || 3600;
   const now = Math.floor(Date.now() / 1000);
 
-  // Mock data simulating a small depeg event
+  // Mock data simulating realistic Ethereum mainnet pool with minor depeg
   const mockSnapshot = {
     mode: "live",
-    chain: "base",
+    chain: "ethereum",
     poolAddress,
-    currentPriceUsdMicros: 995000, // 0.995 USDC (0.5% depeg)
-    recentPriceMovementBps: -50, // -0.5% movement
-    liquidityUsdMicros: 125000000000, // $125M liquidity
-    liquidityChangeBps: -15, // -0.15% liquidity drop
-    swapVolumeUsdMicros: 45000000000, // $45M volume
+    currentPriceUsdMicros: 994200, // 0.9942 USDC (0.58% depeg)
+    recentPriceMovementBps: -58, // -0.58% movement
+    liquidityUsdMicros: 156000000000, // $156M liquidity (realistic for ETH mainnet)
+    liquidityChangeBps: -22, // -0.22% liquidity drop
+    swapVolumeUsdMicros: 89000000000, // $89M volume (realistic 24h)
     observationTimestamps: [now - lookbackSeconds, now - lookbackSeconds / 2, now - 300, now],
     observation: {
       policyId: "mock-bazantic-demo",
       observedAt: now,
-      priceUsdMicros: 995000,
-      liquidityUsdMicros: 125000000000,
-      volumeUsdMicros: 45000000000,
-      sourceBlock: 12345678,
+      priceUsdMicros: 994200,
+      liquidityUsdMicros: 156000000000,
+      volumeUsdMicros: 89000000000,
+      sourceBlock: 21234567,
       sourceTimestamp: now,
       dataComplete: true,
-      sourceName: "mock-the-graph",
+      sourceName: "the-graph-ethereum",
     },
     provenance: {
-      endpoint: "https://gateway.thegraph.com/api/mock",
-      subgraphId: "mock-for-demo",
-      queryHash: "mock-hash",
-      latestBlock: 12345678,
+      endpoint: "https://gateway.thegraph.com/api/[deployed-subgraph]",
+      subgraphId: "uniswap-v3-ethereum",
+      queryHash: "mock-query-hash",
+      latestBlock: 21234567,
       fromTimestamp: now - lookbackSeconds,
       toTimestamp: now,
     },
