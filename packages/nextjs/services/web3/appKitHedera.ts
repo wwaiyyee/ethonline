@@ -1,3 +1,5 @@
+"use client";
+
 import {
   HederaAdapter,
   HederaChainDefinition,
@@ -27,6 +29,10 @@ const hederaNativeAdapter = new HederaAdapter({
 let _provider: HederaProvider | null = null;
 
 export async function getHederaProvider(): Promise<HederaProvider> {
+  if (typeof window === "undefined") {
+    throw new Error("getHederaProvider can only be called in the browser");
+  }
+
   if (!_provider) {
     _provider = (await HederaProvider.init({ projectId, metadata })) as HederaProvider;
   }
@@ -58,6 +64,10 @@ export function hasHederaSession(provider: HederaProvider | null): boolean {
 let _appKit: ReturnType<typeof createAppKit> | null = null;
 
 export async function initAppKit() {
+  if (typeof window === "undefined") {
+    throw new Error("initAppKit can only be called in the browser");
+  }
+
   if (_appKit) return _appKit;
 
   const universalProvider = await getHederaProvider();

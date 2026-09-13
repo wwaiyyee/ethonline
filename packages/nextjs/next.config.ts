@@ -11,7 +11,12 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, "../.."),
   reactStrictMode: true,
   devIndicators: false,
-  transpilePackages: ["@hashgraph/hedera-wallet-connect", "@scaffold-hbar-ui/components"],
+  transpilePackages: [
+    "@hashgraph/hedera-wallet-connect",
+    "@scaffold-hbar-ui/components",
+    "@reown/appkit",
+    "@walletconnect/modal",
+  ],
   serverExternalPackages: ["better-sqlite3"],
   typescript: {
     ignoreBuildErrors: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
@@ -48,9 +53,6 @@ const nextConfig: NextConfig = {
     );
 
     config.externals.push("pino-pretty", "lokijs", "encoding");
-    if (isServer) {
-      config.externals.push("@walletconnect/modal");
-    }
 
     config.ignoreWarnings = [
       ...(config.ignoreWarnings ?? []),
