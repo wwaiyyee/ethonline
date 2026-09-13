@@ -35,8 +35,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
       EVIDENCE_COLLECTED: "badge-primary",
       EVIDENCE_READY: "badge-primary",
       ELIGIBLE: "badge-success",
+      ELIGIBLE_RECOMMENDATION: "badge-success",
       INELIGIBLE: "badge-error",
+      INELIGIBLE_RECOMMENDATION: "badge-error",
       NEEDS_REVIEW: "badge-warning",
+      NEEDS_HUMAN_REVIEW: "badge-warning",
       APPROVED: "badge-success",
       REJECTED: "badge-error",
     };
@@ -51,8 +54,11 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
       EVIDENCE_PENDING: "Buying Evidence...",
       EVIDENCE_READY: "Evidence Ready",
       ELIGIBLE: "Ready for Approval",
+      ELIGIBLE_RECOMMENDATION: "Ready for Approval",
       INELIGIBLE: "Rejected by AI",
+      INELIGIBLE_RECOMMENDATION: "Rejected by AI",
       NEEDS_REVIEW: "Needs Review",
+      NEEDS_HUMAN_REVIEW: "Needs Review",
       APPROVED: "Approved",
       REJECTED: "Rejected",
     };

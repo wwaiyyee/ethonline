@@ -39,7 +39,7 @@ async function processAllClaims() {
        FROM claims c
        JOIN policies p ON c.policy_id = p.policy_id
        JOIN evidence e ON c.claim_id = e.claim_id
-       WHERE c.status IN ('POTENTIAL_CLAIM', 'INVESTIGATING', 'EVIDENCE_READY')
+       WHERE c.status IN ('POTENTIAL_CLAIM', 'INVESTIGATING', 'EVIDENCE_PENDING', 'EVIDENCE_READY')
        ORDER BY c.created_at DESC`,
     )
     .all() as any[];

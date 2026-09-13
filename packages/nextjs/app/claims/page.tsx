@@ -33,25 +33,44 @@ export default function ClaimsPage() {
   const filteredClaims = claims.filter(claim => {
     if (filter === "all") return true;
     if (filter === "active")
-      return ["POTENTIAL_CLAIM", "INVESTIGATING", "ELIGIBLE", "INELIGIBLE", "NEEDS_REVIEW", "EVIDENCE_READY"].includes(
-        claim.status,
-      );
-    if (filter === "ai-skipped") return claim.status === "INVESTIGATING_COMPLETE";
+      return [
+        "POTENTIAL_CLAIM",
+        "INVESTIGATING",
+        "EVIDENCE_PENDING",
+        "EVIDENCE_READY",
+        "ELIGIBLE",
+        "ELIGIBLE_RECOMMENDATION",
+        "NEEDS_REVIEW",
+        "NEEDS_HUMAN_REVIEW",
+      ].includes(claim.status);
+    if (filter === "dismissed") return claim.status === "INVESTIGATING_COMPLETE";
     if (filter === "approved") return claim.status === "APPROVED";
-    if (filter === "rejected") return claim.status === "REJECTED";
+    if (filter === "rejected")
+      return (
+        claim.status === "REJECTED" || claim.status === "INELIGIBLE" || claim.status === "INELIGIBLE_RECOMMENDATION"
+      );
     return true;
   });
 
   const stats = {
     total: claims.length,
     active: claims.filter(c =>
-      ["POTENTIAL_CLAIM", "INVESTIGATING", "ELIGIBLE", "INELIGIBLE", "NEEDS_REVIEW", "EVIDENCE_READY"].includes(
-        c.status,
-      ),
+      [
+        "POTENTIAL_CLAIM",
+        "INVESTIGATING",
+        "EVIDENCE_PENDING",
+        "EVIDENCE_READY",
+        "ELIGIBLE",
+        "ELIGIBLE_RECOMMENDATION",
+        "NEEDS_REVIEW",
+        "NEEDS_HUMAN_REVIEW",
+      ].includes(c.status),
     ).length,
-    aiSkipped: claims.filter(c => c.status === "INVESTIGATING_COMPLETE").length,
+    dismissed: claims.filter(c => c.status === "INVESTIGATING_COMPLETE").length,
     approved: claims.filter(c => c.status === "APPROVED").length,
-    rejected: claims.filter(c => c.status === "REJECTED").length,
+    rejected: claims.filter(
+      c => c.status === "REJECTED" || c.status === "INELIGIBLE" || c.status === "INELIGIBLE_RECOMMENDATION",
+    ).length,
   };
 
   return (
@@ -87,8 +106,8 @@ export default function ClaimsPage() {
               <div className="text-xs text-base-content/60">Active / Needs Review</div>
             </div>
             <div className="bg-base-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-info">{stats.aiSkipped}</div>
-              <div className="text-xs text-base-content/60">AI Skipped</div>
+              <div className="text-2xl font-bold text-info">{stats.dismissed}</div>
+              <div className="text-xs text-base-content/60">Dismissed</div>
             </div>
             <div className="bg-base-200 rounded-lg p-4">
               <div className="text-2xl font-bold text-success">{stats.approved}</div>
@@ -114,10 +133,10 @@ export default function ClaimsPage() {
             Active ({stats.active})
           </button>
           <button
-            className={`btn btn-sm ${filter === "ai-skipped" ? "btn-primary" : "btn-ghost"}`}
-            onClick={() => setFilter("ai-skipped")}
+            className={`btn btn-sm ${filter === "dismissed" ? "btn-primary" : "btn-ghost"}`}
+            onClick={() => setFilter("dismissed")}
           >
-            AI Skipped ({stats.aiSkipped})
+            Dismissed ({stats.dismissed})
           </button>
           <button
             className={`btn btn-sm ${filter === "approved" ? "btn-primary" : "btn-ghost"}`}

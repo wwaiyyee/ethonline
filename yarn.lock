@@ -3849,6 +3849,7 @@ __metadata:
     better-sqlite3: 13.0.3
     blo: ^1.2.0
     buffer: ^6.0.3
+    concurrently: ^10.0.5
     crypto-browserify: ^3.12.1
     daisyui: ^5.0.9
     dotenv: ^17.4.2
