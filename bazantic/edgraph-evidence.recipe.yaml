@@ -6,12 +6,12 @@ description: >-
   only when the live price, movement, liquidity, or data-quality signals justify
   spending HBAR. The final recommendation must include provenance from both
   services and must never execute a payout.
-username: REPLACE_WITH_BAZANTIC_USERNAME
-gateway: REPLACE_WITH_HOSTED_BAZANTIC_GATEWAY_URL
+username: Wai Yee
+gateway: https://edgraph-rfaph.bazgateway.com
 services:
   - name: graph-live-pool
     purpose: Load-bearing live market observation.
-    endpoint: REPLACE_WITH_GRAPH_GATEWAY_SERVICE_URL
+    endpoint: https://edgraph.up.railway.app/api/graph/snapshot
     input:
       poolAddress: string
       lookbackSeconds: integer
@@ -23,7 +23,7 @@ services:
       provenance: object
   - name: edgraph-evidence-api
     purpose: Paid deeper proof for a candidate coverage claim.
-    endpoint: REPLACE_WITH_PUBLIC_EVIDENCE_API_URL
+    endpoint: https://edgraph.up.railway.app/api/v1/depeg-evidence
     method: POST
     payment:
       protocol: x402

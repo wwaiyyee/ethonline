@@ -69,6 +69,13 @@ export async function initAppKit() {
     metadata,
     networks: [...nativeNetworks],
     defaultNetwork: nativeNetworks[0],
+    features: {
+      analytics: false,
+      email: false,
+      socials: [],
+      swaps: false,
+      onramp: false,
+    },
   });
 
   return _appKit;

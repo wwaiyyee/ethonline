@@ -62,7 +62,19 @@ export function getResourceServer(): Promise<x402ResourceServer> {
  */
 export function makeHttpContext(req: Request): { context: HTTPRequestContext; resourceUrl: string } {
   const url = new URL(req.url);
-  const resourceUrl = `${url.origin}${url.pathname}`;
+
+  // Railway/proxy detection: use X-Forwarded-Host or Host header to build the correct public URL
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = req.headers.get("host");
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+
+  const publicOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : host
+      ? `${forwardedProto}://${host}`
+      : url.origin;
+
+  const resourceUrl = `${publicOrigin}${url.pathname}`;
 
   const context: HTTPRequestContext = {
     adapter: {

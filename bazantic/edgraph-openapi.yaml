@@ -15,8 +15,8 @@ info:
     url: https://github.com/your-repo
 
 servers:
-  - url: https://your-deployment-url.com
-    description: Production deployment
+  - url: https://edgraph.up.railway.app
+    description: Production deployment (Railway)
   - url: http://localhost:3000
     description: Local development
 
