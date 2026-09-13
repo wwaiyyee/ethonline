@@ -13,6 +13,8 @@ type DashboardData = {
       thresholdBps: number;
       minimumDurationMinutes: number;
       active: boolean;
+      coverageStart: number;
+      coverageEnd: number;
     };
     latestObservation: {
       priceUsdMicros: number;
@@ -26,6 +28,7 @@ type DashboardData = {
 export default function EdGraphDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "active" | "expired" | "upcoming">("active");
 
   useEffect(() => {
     fetch("/api/edgraph")
@@ -33,6 +36,24 @@ export default function EdGraphDashboard() {
       .then(setData)
       .catch((reason: Error) => setError(reason.message));
   }, []);
+
+  const now = Math.floor(Date.now() / 1000);
+
+  const filteredPolicies =
+    data?.policies.filter(({ policy }) => {
+      if (filter === "all") return true;
+      if (filter === "active") return policy.coverageStart <= now && policy.coverageEnd > now;
+      if (filter === "expired") return policy.coverageEnd <= now;
+      if (filter === "upcoming") return policy.coverageStart > now;
+      return true;
+    }) || [];
+
+  const stats = {
+    total: data?.policies.length || 0,
+    active: data?.policies.filter(({ policy }) => policy.coverageStart <= now && policy.coverageEnd > now).length || 0,
+    expired: data?.policies.filter(({ policy }) => policy.coverageEnd <= now).length || 0,
+    upcoming: data?.policies.filter(({ policy }) => policy.coverageStart > now).length || 0,
+  };
 
   return (
     <section className="mx-auto w-full max-w-6xl px-5 py-10">
@@ -53,15 +74,46 @@ export default function EdGraphDashboard() {
         <span className="badge badge-success gap-2 py-3">LIVE GRAPH DATA</span>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="mb-6 flex gap-2 flex-wrap">
+        <button
+          className={`btn btn-sm ${filter === "all" ? "btn-primary" : "btn-ghost"}`}
+          onClick={() => setFilter("all")}
+        >
+          All Policies ({stats.total})
+        </button>
+        <button
+          className={`btn btn-sm ${filter === "active" ? "btn-primary" : "btn-ghost"}`}
+          onClick={() => setFilter("active")}
+        >
+          Active ({stats.active})
+        </button>
+        <button
+          className={`btn btn-sm ${filter === "expired" ? "btn-primary" : "btn-ghost"}`}
+          onClick={() => setFilter("expired")}
+        >
+          Expired ({stats.expired})
+        </button>
+        <button
+          className={`btn btn-sm ${filter === "upcoming" ? "btn-primary" : "btn-ghost"}`}
+          onClick={() => setFilter("upcoming")}
+        >
+          Upcoming ({stats.upcoming})
+        </button>
+      </div>
+
       {error ? <div className="alert alert-warning">{error}</div> : null}
       {!data && !error ? <div className="loading loading-spinner loading-md" aria-label="Loading dashboard" /> : null}
-      {data?.policies.length === 0 ? (
+      {filteredPolicies.length === 0 && data ? (
         <div className="rounded-lg border border-base-300 bg-base-100 p-8">
-          Create a Hedera policy to start monitoring a pool.
+          {filter === "active" && "No active policies. "}
+          {filter === "expired" && "No expired policies. "}
+          {filter === "upcoming" && "No upcoming policies. "}
+          {filter === "all" && "Create a Hedera policy to start monitoring a pool."}
         </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2">
-          {data?.policies.map(({ policy, latestObservation }) => (
+          {filteredPolicies.map(({ policy, latestObservation }) => (
             <article className="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm" key={policy.policyId}>
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
@@ -69,9 +121,17 @@ export default function EdGraphDashboard() {
                   <p className="mt-1 text-sm text-base-content/70">{policy.policyholder}</p>
                   <p className="mt-1 break-all font-mono text-xs text-base-content/60">{policy.policyId}</p>
                 </div>
-                <span className={policy.active ? "badge badge-success" : "badge badge-ghost"}>
-                  {policy.active ? "ACTIVE" : "RESOLVED"}
-                </span>
+                <div className="flex flex-col gap-2">
+                  {policy.coverageEnd <= now ? (
+                    <span className="badge badge-error">EXPIRED</span>
+                  ) : policy.coverageStart > now ? (
+                    <span className="badge badge-warning">UPCOMING</span>
+                  ) : policy.active ? (
+                    <span className="badge badge-success">ACTIVE</span>
+                  ) : (
+                    <span className="badge badge-ghost">RESOLVED</span>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -104,6 +164,10 @@ export default function EdGraphDashboard() {
               <div className="mt-5 border-t border-base-300 pt-4 text-xs text-base-content/60">
                 Duration trigger: {policy.minimumDurationMinutes} minutes · block{" "}
                 {latestObservation?.sourceBlock ?? "pending"}
+                <div className="mt-2">
+                  Coverage: {new Date(policy.coverageStart * 1000).toLocaleDateString()} -{" "}
+                  {new Date(policy.coverageEnd * 1000).toLocaleDateString()}
+                </div>
               </div>
             </article>
           ))}

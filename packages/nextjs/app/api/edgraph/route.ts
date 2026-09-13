@@ -44,6 +44,8 @@ export async function GET() {
           thresholdBps: policy.thresholdBps,
           minimumDurationMinutes: policy.minimumDurationMinutes,
           active: policy.active,
+          coverageStart: policy.coverageStart,
+          coverageEnd: policy.coverageEnd,
         },
         latestObservation: latestObs || null,
       };
