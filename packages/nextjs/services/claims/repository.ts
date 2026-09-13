@@ -17,6 +17,8 @@ export function updateClaimAgentDecision(claimId: string, action: string, ration
     .prepare(
       `UPDATE claims
        SET status = CASE
+         WHEN ? = 'SKIP_EVIDENCE' THEN 'INVESTIGATING_COMPLETE'
+         WHEN ? = 'BUY_EVIDENCE' THEN 'EVIDENCE_PENDING'
          WHEN status IN ('POTENTIAL_CLAIM', 'INVESTIGATING') THEN 'INVESTIGATING'
          ELSE status
        END,
@@ -25,7 +27,7 @@ export function updateClaimAgentDecision(claimId: string, action: string, ration
        updated_at = datetime('now')
        WHERE claim_id = ?`,
     )
-    .run(action, rationale, claimId);
+    .run(action, action, action, rationale, claimId);
 }
 
 export function updateClaimWithEvaluation(claimId: string, decision: PolicyDecision): void {

@@ -30,6 +30,8 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
     const colors: Record<string, string> = {
       POTENTIAL_CLAIM: "badge-info",
       INVESTIGATING: "badge-warning",
+      INVESTIGATING_COMPLETE: "badge-ghost",
+      EVIDENCE_PENDING: "badge-warning",
       EVIDENCE_COLLECTED: "badge-primary",
       EVIDENCE_READY: "badge-primary",
       ELIGIBLE: "badge-success",
@@ -42,25 +44,36 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
   };
 
   const getStatusLabel = (status: string) => {
-    return status
-      .replace(/_/g, " ")
-      .toLowerCase()
-      .replace(/\b\w/g, l => l.toUpperCase());
+    const labels: Record<string, string> = {
+      POTENTIAL_CLAIM: "Potential Depeg",
+      INVESTIGATING: "AI Analyzing...",
+      INVESTIGATING_COMPLETE: "No Action Needed",
+      EVIDENCE_PENDING: "Buying Evidence...",
+      EVIDENCE_READY: "Evidence Ready",
+      ELIGIBLE: "Ready for Approval",
+      INELIGIBLE: "Rejected by AI",
+      NEEDS_REVIEW: "Needs Review",
+      APPROVED: "Approved",
+      REJECTED: "Rejected",
+    };
+    return labels[status] || status.replace(/_/g, " ");
   };
 
   const getStatusIcon = (status: string) => {
     const icons: Record<string, string> = {
-      POTENTIAL_CLAIM: "?",
-      INVESTIGATING: "...",
-      EVIDENCE_COLLECTED: "[pkg]",
-      EVIDENCE_READY: "[ok]",
-      ELIGIBLE: "[+]",
-      INELIGIBLE: "[-]",
-      NEEDS_REVIEW: "[!]",
-      APPROVED: "[v]",
-      REJECTED: "[x]",
+      POTENTIAL_CLAIM: "🔍",
+      INVESTIGATING: "⏳",
+      INVESTIGATING_COMPLETE: "✓",
+      EVIDENCE_PENDING: "📦",
+      EVIDENCE_COLLECTED: "📋",
+      EVIDENCE_READY: "✓",
+      ELIGIBLE: "✓",
+      INELIGIBLE: "✗",
+      NEEDS_REVIEW: "⚠",
+      APPROVED: "✓",
+      REJECTED: "✗",
     };
-    return icons[status] || "•";
+    return icons[status] || "○";
   };
 
   const hasEvidence = claim.evidenceFileIds && claim.evidenceFileIds.length > 0;
@@ -84,13 +97,13 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">{getStatusIcon(claim.status)}</span>
               <div>
-                <h3 className="text-lg font-bold">Depeg Detection</h3>
+                <h3 className="text-lg font-bold">{claim.policyName || "Depeg Detection"}</h3>
                 <div
                   className="text-xs text-base-content/60 font-mono cursor-pointer hover:text-base-content/80 break-all"
-                  onClick={() => copyToClipboard(claim.claimId)}
-                  title="Click to copy"
+                  onClick={() => copyToClipboard(claim.policyId)}
+                  title="Click to copy Policy ID"
                 >
-                  {claim.claimId}
+                  {claim.policyId}
                 </div>
               </div>
             </div>
@@ -137,33 +150,38 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
           </div>
         </div>
 
-        {/* Decision Summary */}
-        {hasDecision && (
+        {/* AI Decision/Reasoning - ALWAYS show when available */}
+        {(claim.agentRationale || claim.decision?.reasoning) && (
           <div className="mb-4">
             <div className="bg-base-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="font-bold">Agent Decision:</span>
-                <span
-                  className={`badge ${claim.decision?.outcome.includes("ELIGIBLE") ? "badge-success" : "badge-error"}`}
-                >
-                  {claim.decision?.outcome.replace(/_/g, " ")}
+                <span className="font-bold">
+                  {claim.status === "ELIGIBLE" || claim.status === "INELIGIBLE" || claim.status === "NEEDS_REVIEW"
+                    ? "AI Recommendation:"
+                    : claim.status === "INVESTIGATING_COMPLETE"
+                      ? "AI Decision:"
+                      : "AI Analysis:"}
                 </span>
-                {claim.decision?.confidence && (
-                  <span className="badge badge-ghost">{claim.decision.confidence} Confidence</span>
+                {claim.status === "ELIGIBLE" && <span className="badge badge-success">APPROVE CLAIM</span>}
+                {claim.status === "INELIGIBLE" && <span className="badge badge-error">REJECT CLAIM</span>}
+                {claim.status === "NEEDS_REVIEW" && <span className="badge badge-warning">NEEDS REVIEW</span>}
+                {claim.status === "INVESTIGATING_COMPLETE" && (
+                  <span className="badge badge-ghost">Skipped Evidence Purchase</span>
                 )}
               </div>
-              {claim.decision?.reasoning && (
-                <p className="text-sm text-base-content/80 leading-relaxed">{claim.decision.reasoning}</p>
-              )}
+              <p className="text-sm text-base-content/80 leading-relaxed">
+                {/* For ELIGIBLE/INELIGIBLE, prefer decision.reasoning over agent_rationale */}
+                {claim.decision?.reasoning || claim.agentRationale}
+              </p>
             </div>
           </div>
         )}
 
         {/* Expandable Details */}
-        {(claim.notes || hasEvidence || claim.lastAgentAction) && (
+        {(claim.notes || hasEvidence) && (
           <div className="mb-4">
             <button className="btn btn-sm btn-ghost w-full justify-between" onClick={() => setExpanded(!expanded)}>
-              <span>{expanded ? "Hide" : "Show"} Details</span>
+              <span>{expanded ? "Hide" : "Show"} Additional Details</span>
               <svg
                 className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
                 fill="none"
@@ -176,32 +194,18 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
             {expanded && (
               <div className="mt-3 space-y-3">
-                {claim.lastAgentAction && (
+                {hasEvidence && (
                   <div>
-                    <div className="text-xs text-base-content/60 mb-1">Last Agent Action:</div>
+                    <div className="text-xs text-base-content/60 mb-1">Evidence Files:</div>
                     <div className="text-sm bg-base-200 px-3 py-2 rounded">
-                      {claim.lastAgentAction.replace(/_/g, " ")}
-                    </div>
-                  </div>
-                )}
-
-                {hasDecision && (
-                  <div>
-                    <div className="text-xs text-base-content/60 mb-1">Agent Decision:</div>
-                    <div className="bg-base-200 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`badge badge-lg ${getStatusColor(claim.status)}`}>{claim.status}</span>
-                      </div>
-                      {claim.agentRationale && (
-                        <div className="text-sm text-base-content/80 leading-relaxed">{claim.agentRationale}</div>
-                      )}
+                      {claim.evidenceFileIds?.length} file(s) attached
                     </div>
                   </div>
                 )}
 
                 {claim.notes && (
                   <div>
-                    <div className="text-xs text-base-content/60 mb-1">Notes:</div>
+                    <div className="text-xs text-base-content/60 mb-1">Internal Notes:</div>
                     <div className="text-sm bg-base-200 px-3 py-2 rounded leading-relaxed">{claim.notes}</div>
                   </div>
                 )}
@@ -212,15 +216,30 @@ export function ClaimCard({ claim, onUpdate }: ClaimCardProps) {
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-base-300">
-          {!hasEvidence && claim.status === "INVESTIGATING" && (
-            <BuyEvidenceButton claimId={claim.claimId} onPurchased={onUpdate} />
+          {needsApproval && (
+            <div className="w-full">
+              <div className="text-sm text-base-content/80 mb-3">
+                The AI agent has evaluated this claim. Review the recommendation above and decide:
+              </div>
+              <ApprovalControls claimId={claim.claimId} onApproved={onUpdate} />
+            </div>
           )}
 
-          {needsApproval && <ApprovalControls claimId={claim.claimId} onApproved={onUpdate} />}
-
-          {!needsApproval && !hasEvidence && (
+          {claim.status === "POTENTIAL_CLAIM" && (
             <div className="text-sm text-base-content/60 italic">
-              Waiting for evidence collection or agent evaluation...
+              Waiting for AI agent to analyze this potential claim...
+            </div>
+          )}
+
+          {claim.status === "INVESTIGATING" && (
+            <div className="text-sm text-base-content/60 italic">
+              AI agent is currently evaluating market conditions...
+            </div>
+          )}
+
+          {claim.status === "INVESTIGATING_COMPLETE" && (
+            <div className="text-sm text-base-content/60 italic">
+              AI determined the market is stable. No evidence purchase needed.
             </div>
           )}
         </div>

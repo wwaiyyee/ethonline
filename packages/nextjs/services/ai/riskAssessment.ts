@@ -26,7 +26,7 @@ export async function assessRiskWithAI(
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
   });
 
   const evidenceCost = 100_000n; // 0.001 HBAR in tinybars
@@ -72,10 +72,16 @@ Respond with JSON in this exact format:
   "keyFactors": ["factor 1", "factor 2", "factor 3", "factor 4"]
 }`;
 
-  console.log(`[AI] Querying Gemini 1.5 Flash for risk assessment...`);
+  console.log(`[AI] Querying Gemini 2.5 Flash for risk assessment...`);
   const result = await model.generateContent(prompt);
   const response = result.response;
-  const text = response.text();
+  let text = response.text();
+
+  // Strip markdown code blocks if present
+  text = text
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
 
   let decision: RiskAssessmentDecision;
   try {

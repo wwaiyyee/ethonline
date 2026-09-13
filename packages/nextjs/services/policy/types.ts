@@ -12,7 +12,14 @@ export type DecisionOutcome =
   | "NEEDS_HUMAN_REVIEW";
 
 export type ClaimStatus =
-  "POTENTIAL_CLAIM" | "INVESTIGATING" | "EVIDENCE_READY" | DecisionOutcome | "APPROVED" | "REJECTED";
+  | "POTENTIAL_CLAIM"
+  | "INVESTIGATING"
+  | "INVESTIGATING_COMPLETE"
+  | "EVIDENCE_PENDING"
+  | "EVIDENCE_READY"
+  | DecisionOutcome
+  | "APPROVED"
+  | "REJECTED";
 
 export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED" | string;
 
@@ -121,10 +128,12 @@ export type PaymentProof = {
 export type Claim = {
   claimId: string;
   policyId: string;
+  policyName?: string;
   status: ClaimStatus;
   triggerWindowStart?: number;
   triggerWindowEnd?: number;
-  detectedAt: number;
+  createdAt?: number;
+  detectedAt?: number;
   lowestPriceUsdMicros?: number;
   durationMinutes?: number;
   decision?: PolicyDecision;

@@ -11,8 +11,7 @@
  */
 import dotenv from "dotenv";
 import { runClaimsAgent } from "~~/services/claims/agent";
-import { getDb } from "~~/services/db/client";
-import { getAllActivePolicies } from "~~/services/policy/repository";
+import { listActivePolicies } from "~~/services/policy/repository";
 
 dotenv.config();
 
@@ -63,15 +62,15 @@ async function testSinglePolicy(policyId: string) {
 }
 
 async function testAllPolicies() {
-  const policies = getAllActivePolicies();
+  const policies = listActivePolicies();
   console.log(`Found ${policies.length} active policies\n`);
 
   let processed = 0;
   let skipped = 0;
   let bought = 0;
 
-  for (const policy of policies.slice(0, 3)) {
-    // Test first 3 policies
+  for (const policy of policies) {
+    // Test all active policies
     console.log(`\n${"=".repeat(70)}`);
     console.log(`Testing Policy: ${policy.policyId}`);
     console.log(`Stablecoin: ${policy.stablecoinSymbol}`);

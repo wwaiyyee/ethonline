@@ -22,7 +22,7 @@ export async function evaluateClaimWithAI(policy: PolicyTerms, evidence: Evidenc
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
   });
 
   const priceUsd = evidence.lowestObservedPriceUsdMicros / 1_000_000;
@@ -73,10 +73,16 @@ Respond with JSON in this exact format:
   "flagsForReview": ["flag 1", "flag 2"]
 }`;
 
-  console.log(`[AI] Querying Gemini 1.5 Flash for claim evaluation...`);
+  console.log(`[AI] Querying Gemini 2.5 Flash for claim evaluation...`);
   const result = await model.generateContent(prompt);
   const response = result.response;
-  const text = response.text();
+  let text = response.text();
+
+  // Strip markdown code blocks if present
+  text = text
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
 
   let aiResult: AIEvaluationResult;
   try {

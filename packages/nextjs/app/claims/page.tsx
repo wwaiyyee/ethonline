@@ -32,7 +32,11 @@ export default function ClaimsPage() {
 
   const filteredClaims = claims.filter(claim => {
     if (filter === "all") return true;
-    if (filter === "active") return ["INVESTIGATING", "EVIDENCE_READY", "NEEDS_REVIEW"].includes(claim.status);
+    if (filter === "active")
+      return ["POTENTIAL_CLAIM", "INVESTIGATING", "ELIGIBLE", "INELIGIBLE", "NEEDS_REVIEW", "EVIDENCE_READY"].includes(
+        claim.status,
+      );
+    if (filter === "ai-skipped") return claim.status === "INVESTIGATING_COMPLETE";
     if (filter === "approved") return claim.status === "APPROVED";
     if (filter === "rejected") return claim.status === "REJECTED";
     return true;
@@ -40,10 +44,12 @@ export default function ClaimsPage() {
 
   const stats = {
     total: claims.length,
-    investigating: claims.filter(c => c.status === "INVESTIGATING").length,
-    needsReview: claims.filter(c =>
-      ["NEEDS_REVIEW", "ELIGIBLE_RECOMMENDATION", "INELIGIBLE_RECOMMENDATION"].includes(c.status),
+    active: claims.filter(c =>
+      ["POTENTIAL_CLAIM", "INVESTIGATING", "ELIGIBLE", "INELIGIBLE", "NEEDS_REVIEW", "EVIDENCE_READY"].includes(
+        c.status,
+      ),
     ).length,
+    aiSkipped: claims.filter(c => c.status === "INVESTIGATING_COMPLETE").length,
     approved: claims.filter(c => c.status === "APPROVED").length,
     rejected: claims.filter(c => c.status === "REJECTED").length,
   };
@@ -71,26 +77,22 @@ export default function ClaimsPage() {
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             <div className="bg-base-200 rounded-lg p-4">
               <div className="text-2xl font-bold">{stats.total}</div>
               <div className="text-xs text-base-content/60">Total Claims</div>
             </div>
             <div className="bg-base-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-warning">{stats.investigating}</div>
-              <div className="text-xs text-base-content/60">Investigating</div>
+              <div className="text-2xl font-bold text-warning">{stats.active}</div>
+              <div className="text-xs text-base-content/60">Active / Needs Review</div>
             </div>
             <div className="bg-base-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-info">{stats.needsReview}</div>
-              <div className="text-xs text-base-content/60">Needs Review</div>
+              <div className="text-2xl font-bold text-info">{stats.aiSkipped}</div>
+              <div className="text-xs text-base-content/60">AI Skipped</div>
             </div>
             <div className="bg-base-200 rounded-lg p-4">
               <div className="text-2xl font-bold text-success">{stats.approved}</div>
               <div className="text-xs text-base-content/60">Approved</div>
-            </div>
-            <div className="bg-base-200 rounded-lg p-4">
-              <div className="text-2xl font-bold text-error">{stats.rejected}</div>
-              <div className="text-xs text-base-content/60">Rejected</div>
             </div>
           </div>
         </div>
@@ -109,13 +111,19 @@ export default function ClaimsPage() {
             className={`btn btn-sm ${filter === "active" ? "btn-primary" : "btn-ghost"}`}
             onClick={() => setFilter("active")}
           >
-            Active
+            Active ({stats.active})
+          </button>
+          <button
+            className={`btn btn-sm ${filter === "ai-skipped" ? "btn-primary" : "btn-ghost"}`}
+            onClick={() => setFilter("ai-skipped")}
+          >
+            AI Skipped ({stats.aiSkipped})
           </button>
           <button
             className={`btn btn-sm ${filter === "approved" ? "btn-primary" : "btn-ghost"}`}
             onClick={() => setFilter("approved")}
           >
-            Approved
+            Approved ({stats.approved})
           </button>
           <button
             className={`btn btn-sm ${filter === "rejected" ? "btn-primary" : "btn-ghost"}`}
