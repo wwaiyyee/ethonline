@@ -11,9 +11,9 @@
   "scripts": {
     "dev": "concurrently -n \"next,monitor\" -c \"cyan,yellow\" \"yarn next:dev\" \"yarn edgraph:monitor\"",
     "format": "yarn next:format && yarn hardhat:format",
-    "infra:up": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose up -d --build; else docker-compose up -d --build; fi'",
-    "infra:down": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose down; else docker-compose down; fi'",
-    "infra:logs": "sh -c 'if docker compose version >/dev/null 2>&1; then docker compose logs -f; else docker-compose logs -f; fi'",
+    "infra:up": "docker compose up -d --build",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f",
     "facilitator:check-types": "cd facilitator && npm run check-types",
     "edgraph:db:check": "yarn workspace @sh/nextjs db:check",
     "edgraph:agent": "yarn workspace @sh/nextjs edgraph:agent",

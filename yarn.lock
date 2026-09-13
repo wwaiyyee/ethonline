@@ -3819,6 +3819,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sh/nextjs@workspace:packages/nextjs"
   dependencies:
+    "@anthropic-ai/sdk": ^0.125.0
     "@aws-sdk/client-s3": ^3.1062.0
     "@aws-sdk/s3-request-presigner": ^3.1062.0
     "@hashgraph/hedera-wallet-connect": ^2.1.3

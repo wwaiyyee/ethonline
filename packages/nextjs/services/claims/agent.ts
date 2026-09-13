@@ -5,7 +5,12 @@ import { createClientHederaSigner } from "@x402/hedera";
 import { ExactHederaScheme } from "@x402/hedera/exact/client";
 import { evaluateClaimWithAI } from "~~/services/ai/claimEvaluation";
 import { assessRiskWithAI } from "~~/services/ai/riskAssessment";
-import { ensureClaim, updateClaimAgentDecision, updateClaimWithEvaluation } from "~~/services/claims/repository";
+import {
+  ensureClaim,
+  updateClaimAgentDecision,
+  updateClaimWithEvaluation,
+  updateClaimWithSnapshotData,
+} from "~~/services/claims/repository";
 import { canSpendEvidence, getEvidencePriceTinybar } from "~~/services/claims/spendPolicy";
 import { type PoolRiskSnapshot, queryPoolRiskSnapshot } from "~~/services/graph/agentTool";
 import { getPolicy } from "~~/services/policy/repository";
@@ -83,6 +88,14 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
 
   if (!aiDecision.buyEvidence) {
     updateClaimAgentDecision(claimId, "SKIP_EVIDENCE", aiDecision.rationale);
+
+    // Store snapshot data so UI can display price and duration even when evidence is skipped
+    updateClaimWithSnapshotData(
+      claimId,
+      snapshot.priceUsdMicros,
+      0, // Duration is 0 since we're not tracking a depeg event
+    );
+
     console.log(`[Agent] Action: SKIP_EVIDENCE`);
     return { policy, claimId, snapshot, action: "SKIP_EVIDENCE", rationale: aiDecision.rationale };
   }
@@ -157,7 +170,25 @@ export async function runClaimsAgent(input: { policyId: string; claimId?: string
     );
   }
 
-  // Step 6: Store evaluation in database
+  // Step 6: AI Auto-Approval (if enabled and confidence is high)
+  const autoApprove = process.env.AI_AUTO_APPROVE === "true";
+  const autoApproveThreshold = parseInt(process.env.AI_AUTO_APPROVE_CONFIDENCE_THRESHOLD || "90", 10);
+
+  if (autoApprove && policyDecision.outcome === "ELIGIBLE_RECOMMENDATION") {
+    // Check if AI confidence is high enough for auto-approval
+    const aiConfidence = policyDecision.confidence || 0;
+    if (aiConfidence >= autoApproveThreshold) {
+      console.log(`[Agent] AI confidence (${aiConfidence}%) >= threshold (${autoApproveThreshold}%)`);
+      console.log(`[Agent] AUTO-APPROVING claim ${claimId}`);
+      policyDecision.outcome = "ELIGIBLE";
+      policyDecision.reasons.push(`Auto-approved by AI (confidence: ${aiConfidence}%)`);
+    } else {
+      console.log(`[Agent] AI confidence (${aiConfidence}%) < threshold (${autoApproveThreshold}%)`);
+      console.log(`[Agent] Keeping ELIGIBLE_RECOMMENDATION - requires human review`);
+    }
+  }
+
+  // Store evaluation in database
   updateClaimWithEvaluation(claimId, policyDecision);
   console.log(`[Agent] Claim updated with policy decision`);
 

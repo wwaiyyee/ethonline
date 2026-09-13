@@ -18,6 +18,7 @@
     "ai:compare": "tsx scripts/compare-hardcoded-vs-ai.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "@aws-sdk/client-s3": "^3.1062.0",
     "@aws-sdk/s3-request-presigner": "^3.1062.0",
     "@hashgraph/hedera-wallet-connect": "^2.1.3",

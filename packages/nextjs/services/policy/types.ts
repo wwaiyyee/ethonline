@@ -85,7 +85,7 @@ export type EvidenceReport = {
 export type PolicyDecision = {
   outcome: DecisionOutcome;
   reasons: string[];
-  confidence?: "HIGH" | "MEDIUM" | "LOW";
+  confidence?: number; // 0-100 confidence score from AI
   reasoning?: string;
   recommendedPayoutAmountBaseUnits?: string;
   evaluatedAt: number;

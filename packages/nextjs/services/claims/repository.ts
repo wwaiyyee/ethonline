@@ -30,6 +30,22 @@ export function updateClaimAgentDecision(claimId: string, action: string, ration
     .run(action, action, action, rationale, claimId);
 }
 
+export function updateClaimWithSnapshotData(
+  claimId: string,
+  lowestPriceUsdMicros: number,
+  durationMinutes: number,
+): void {
+  getDb()
+    .prepare(
+      `UPDATE claims
+       SET lowest_price_usd_micros = ?,
+           duration_minutes = ?,
+           updated_at = datetime('now')
+       WHERE claim_id = ?`,
+    )
+    .run(lowestPriceUsdMicros, durationMinutes, claimId);
+}
+
 export function updateClaimWithEvaluation(claimId: string, decision: PolicyDecision): void {
   const statusMap: Record<PolicyDecision["outcome"], ClaimStatus> = {
     ELIGIBLE_RECOMMENDATION: "ELIGIBLE_RECOMMENDATION",
