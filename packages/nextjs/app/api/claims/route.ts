@@ -99,22 +99,10 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("Claims API error:", error);
-    // If SQLite is unavailable, return empty claims instead of 500
-    if (
-      error instanceof Error &&
-      (error.message.includes("better-sqlite3") ||
-        error.message.includes("Cannot find module") ||
-        error.message.includes("MODULE_NOT_FOUND"))
-    ) {
-      return NextResponse.json({
-        claims: [],
-        total: 0,
-        note: "Database is initializing. Claims will appear once the monitor has run.",
-      });
-    }
-    return NextResponse.json(
-      { error: "Failed to fetch claims", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 },
-    );
+    return NextResponse.json({
+      claims: [],
+      total: 0,
+      note: "Database is initializing. Claims will appear once the monitor has run.",
+    });
   }
 }

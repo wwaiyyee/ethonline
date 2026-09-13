@@ -8,8 +8,6 @@ const { ProvidePlugin } = nodeRequire("webpack") as {
 };
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  outputFileTracingRoot: path.join(__dirname, "../.."),
   reactStrictMode: true,
   devIndicators: false,
   transpilePackages: [

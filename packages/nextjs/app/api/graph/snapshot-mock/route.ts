@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 /** Mock Graph snapshot endpoint for Bazantic demo when real pool is not indexed */

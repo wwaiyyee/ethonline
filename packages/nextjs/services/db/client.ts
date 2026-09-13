@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 type Migration = {
@@ -35,7 +36,36 @@ const globalDb = globalThis as DbGlobal;
 
 function getDatabasePath(): string {
   const configuredPath = process.env.EDGRAPH_DB_PATH?.trim();
-  return path.resolve(configuredPath || path.join(process.cwd(), ".data", "edgraph.sqlite"));
+  if (configuredPath) {
+    try {
+      const resolved = path.resolve(configuredPath);
+      const dir = path.dirname(resolved);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      return resolved;
+    } catch (e) {
+      console.warn(`[getDb] Could not use configured EDGRAPH_DB_PATH "${configuredPath}":`, e);
+    }
+  }
+
+  // Fallback 1: local .data directory in process.cwd()
+  try {
+    const localDir = path.join(process.cwd(), ".data");
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    return path.join(localDir, "edgraph.sqlite");
+  } catch (e) {
+    console.warn("[getDb] Could not use local .data dir:", e);
+  }
+
+  // Fallback 2: /tmp directory
+  const tmpDir = path.join(os.tmpdir(), "edgraph-data");
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
+  return path.join(tmpDir, "edgraph.sqlite");
 }
 
 function readMigration(migration: Migration): string {
@@ -89,9 +119,16 @@ export function getDb(): Database.Database {
     return globalDb.__edgraphDatabase;
   }
 
-  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+  const dir = path.dirname(databasePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   const database = new Database(databasePath);
-  database.pragma("journal_mode = WAL");
+  try {
+    database.pragma("journal_mode = WAL");
+  } catch (e) {
+    console.warn("[getDb] WAL mode could not be set, using default journal:", e);
+  }
   database.pragma("foreign_keys = ON");
   database.pragma("busy_timeout = 5000");
   applyMigrations(database);

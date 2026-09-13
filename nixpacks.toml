@@ -8,12 +8,7 @@ cmds = ['yarn install --frozen-lockfile']
 cmds = [
   'npm --prefix packages/nextjs rebuild better-sqlite3',
   'yarn next:build',
-  'cp -r packages/nextjs/.next/static packages/nextjs/.next/standalone/packages/nextjs/.next/static',
-  'test -d packages/nextjs/public && cp -r packages/nextjs/public packages/nextjs/.next/standalone/packages/nextjs/public || true',
-  'mkdir -p packages/nextjs/.next/standalone/packages/nextjs/services/db/migrations',
-  'cp packages/nextjs/services/db/migrations/*.sql packages/nextjs/.next/standalone/packages/nextjs/services/db/migrations/',
-  'test -d packages/nextjs/.next/standalone/node_modules/better-sqlite3 && cp -r packages/nextjs/node_modules/better-sqlite3/prebuilds packages/nextjs/.next/standalone/node_modules/better-sqlite3/prebuilds || true',
 ]
 
 [start]
-cmd = 'node packages/nextjs/.next/standalone/packages/nextjs/server.js & SERVER_PID=$! && sleep 3 && cd packages/nextjs && node --import tsx scripts/edgraph-monitor.ts & wait $SERVER_PID'
+cmd = 'yarn next:serve'
