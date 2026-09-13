@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { decodePaymentSignatureHeader } from "@x402/core/http";
+import {
+  decodePaymentSignatureHeader,
+  encodePaymentRequiredHeader,
+  encodePaymentResponseHeader,
+} from "@x402/core/http";
+import type { ResourceInfo } from "@x402/core/types";
 import {
   HBAR_ASSET,
   MAX_TIMEOUT_SECONDS,
@@ -10,6 +15,12 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const resourceInfo: ResourceInfo = {
+  url: "/api/debug/payment-test",
+  description: "x402 payment test endpoint",
+  mimeType: "application/json",
+};
 
 /**
  * Debug endpoint to test x402 payment flow with detailed logging.
@@ -56,12 +67,14 @@ export async function POST(req: Request) {
   );
   console.log("[payment-test] Requirements built:", JSON.stringify(requirements, null, 2));
 
+  const info = { ...resourceInfo, url: resourceUrl };
+
   if (!context.paymentHeader) {
     console.log("[payment-test] No payment header, returning 402");
-    return NextResponse.json(
-      { x402Version: 2, error: "Payment required (test)", resource: { url: resourceUrl }, accepts: requirements },
-      { status: 402, headers: { "Content-Type": "application/json" } },
-    );
+    const required = await server.createPaymentRequiredResponse(requirements, info, "Payment required (test)");
+    const response = NextResponse.json(required, { status: 402 });
+    response.headers.set("PAYMENT-REQUIRED", encodePaymentRequiredHeader(required));
+    return response;
   }
 
   console.log("[payment-test] Payment header present, decoding...");
@@ -104,11 +117,13 @@ export async function POST(req: Request) {
   }
 
   console.log("[payment-test] === PAYMENT SUCCESS ===");
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     message: "Payment test passed",
     transaction: settlement.transaction,
     payer: settlement.payer,
     network: settlement.network,
   });
+  response.headers.set("PAYMENT-RESPONSE", encodePaymentResponseHeader(settlement));
+  return response;
 }
