@@ -10,7 +10,7 @@ export async function GET() {
       service: "EdGraph API",
       version: "1.0.0",
       endpoints: {
-        graphMonitor: "/api/graph/snapshot",
+        graphMonitor: "/api/graph/snapshot-mock",
         evidenceAPI: "/api/v1/depeg-evidence",
         openapi: "/api/openapi",
       },
