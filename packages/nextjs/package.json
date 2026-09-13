@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "next build",
+    "build": "rm -rf app/blockexplorer && next build",
     "check-types": "next typegen && tsc --noEmit --incremental",
     "db:check": "node --import tsx scripts/edgraph-db-check.ts",
     "edgraph:agent": "tsx scripts/edgraph-agent.ts",
@@ -13,6 +13,7 @@
     "lint": "next lint",
     "serve": "next start",
     "start": "next dev",
+    "seed:policies": "tsx scripts/seed-policies.ts",
     "x402:buy": "tsx scripts/x402-buy.ts"
   },
   "dependencies": {

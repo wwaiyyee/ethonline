@@ -30,7 +30,19 @@ export async function POST(req: Request) {
 
   try {
     const snapshot = await queryPoolRiskSnapshot(policyId);
-    const observation = upsertObservation(snapshot.observation);
+
+    // Only save observation if policyId was explicitly provided (not auto-generated from poolAddress)
+    // This avoids FK constraint errors when the policy doesn't exist in the database
+    let observation = snapshot.observation;
+    if (body.policyId) {
+      try {
+        observation = upsertObservation(snapshot.observation);
+      } catch (err) {
+        console.warn(`[api/graph/snapshot] Could not persist observation for ${policyId}:`, err);
+        // Continue with in-memory observation - don't crash the endpoint
+      }
+    }
+
     return NextResponse.json({ ...snapshot, observation });
   } catch (error) {
     console.error("[api/graph/snapshot] live query failed", error);

@@ -1,176 +1,267 @@
-# Railway Deployment Guide - EdGraph Coverage Operations
+# Railway Deployment Guide for EdGraph
 
-This guide ensures the EdGraph Monitor, Policies, and Claims pages work without 502 errors on Railway.
+This guide covers deploying the EdGraph API to Railway with all required environment variables and services.
 
-## Critical Environment Variables
+## Prerequisites
 
-**Without these variables, the dashboard will show "Dashboard API unavailable" and return 502 errors.**
+1. Railway account with CLI installed: `npm i -g @railway/cli`
+2. All contracts deployed to Hedera Testnet
+3. The Graph API key and subgraph endpoint
+4. Agent Hedera account with funded HBAR balance
 
-### Required Variables for Railway
+## Architecture
 
-Copy these into your Railway project's environment variables:
+EdGraph on Railway consists of:
+- **Next.js API**: Serves the evidence API, Graph monitoring, and frontend
+- **Facilitator**: Self-hosted x402 payment facilitator
+- **PostgreSQL**: Optional - currently using SQLite on persistent volume
+- **Persistent Volume**: Stores `edgraph.sqlite` database
+
+## Step 1: Create Railway Project
 
 ```bash
-# === WalletConnect (Required for HashPack connection) ===
-NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=21ac6fe1145d5e738b642eaaef8019da
+# Login to Railway
+railway login
 
-# === Hedera Network Configuration ===
-NEXT_PUBLIC_HEDERA_MAINNET_RPC_URL=https://mainnet.hashio.io/api
-NEXT_PUBLIC_HEDERA_TESTNET_RPC_URL=https://testnet.hashio.io/api
-HEDERA_RPC_URL=https://testnet.hashio.io/api
+# Create new project
+railway init
 
-# === PolicyRegistry Contract (CRITICAL - prevents 502 errors) ===
-POLICY_REGISTRY_ADDRESS=0xC3549920b94a795D75E6C003944943D552C46F97
-NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS=0xC3549920b94a795D75E6C003944943D552C46F97
-POLICY_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443942
-NEXT_PUBLIC_POLICY_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443942
-
-# === FileRegistry Contract (for x402 file operations) ===
-FILE_REGISTRY_ADDRESS=0xF2cb3cfA36Bfb95E0FD855C1b41Ab19c517FcDB9
-NEXT_PUBLIC_FILE_REGISTRY_ADDRESS=0xF2cb3cfA36Bfb95E0FD855C1b41Ab19c517FcDB9
-FILE_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443939
-NEXT_PUBLIC_FILE_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443939
-
-# === EdGraph Database ===
-EDGRAPH_DB_PATH=.data/edgraph.sqlite
-
-# === The Graph Configuration (Ethereum Mainnet USDC/WETH pool) ===
-EDGRAPH_GRAPH_ENDPOINT=https://gateway.thegraph.com/api/c71b0bd685814c60d1a641b9d0bba7b8/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV
-EDGRAPH_GRAPH_SUBGRAPH_ID=5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV
-EDGRAPH_GRAPH_API_KEY=c71b0bd685814c60d1a641b9d0bba7b8
-EDGRAPH_GRAPH_POOL_ADDRESS=0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
-EDGRAPH_STABLECOIN_ADDRESS=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
-EDGRAPH_STABLECOIN_SYMBOL=USDC
-EDGRAPH_QUOTE_TOKEN_ADDRESS=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
-EDGRAPH_QUOTE_TOKEN_SYMBOL=WETH
-EDGRAPH_QUOTE_TOKEN_USD_PRICE=2500
-
-# === Claims Agent Configuration ===
-EDGRAPH_EVIDENCE_API_URL=https://YOUR_RAILWAY_URL/api/v1/depeg-evidence
-EDGRAPH_GRAPH_SERVICE_URL=https://YOUR_RAILWAY_URL/api/graph/snapshot
-EDGRAPH_AGENT_ACCOUNT_ID=0.0.10461760
-EDGRAPH_AGENT_PRIVATE_KEY=0x8aa1ed7c9bfe9db6c7c13ba36db39dc6d548c1e08d978570a149c8d792752e44
-EDGRAPH_AGENT_HBAR_BUDGET_TINYBAR=1000000
-EDGRAPH_EVIDENCE_PRICE_TINYBAR=1000000
-EDGRAPH_EVIDENCE_PAY_TO_ACCOUNT_ID=0.0.10426282
-
-# === x402 Configuration ===
-FACILITATOR_URL=https://edgraph-facilitator.up.railway.app
-X402_NETWORK=hedera:testnet
-NEXT_PUBLIC_X402_NETWORK=hedera:testnet
-
-# === MinIO / S3 Configuration (Optional - for file storage) ===
-S3_ENDPOINT=http://localhost:9000
-S3_REGION=us-east-1
-S3_BUCKET=x402-files
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin
-S3_FORCE_PATH_STYLE=true
+# Link to existing project (if already created)
+railway link
 ```
 
-## Deployment Checklist
+## Step 2: Add Persistent Volume
 
-### 1. Set Environment Variables in Railway
+In Railway dashboard:
+1. Go to your service settings
+2. Add a new Volume
+3. Mount path: `/app/.data`
+4. This will store the SQLite database persistently
 
-1. Go to your Railway project dashboard
-2. Click on your service
-3. Navigate to the "Variables" tab
-4. Click "Raw Editor" for bulk paste
-5. Copy and paste ALL the variables above
-6. **Replace `YOUR_RAILWAY_URL`** with your actual Railway deployment URL (e.g., `edgraph-production.up.railway.app`)
-7. Click "Deploy" to apply changes
+## Step 3: Set Environment Variables
 
-### 2. Verify Contract Addresses
+Copy all variables from `packages/nextjs/.env.production` into Railway:
 
-Make sure these contract addresses are correct for Hedera testnet:
-
-- **PolicyRegistry**: `0xC3549920b94a795D75E6C003944943D552C46F97` (Hedera ID: `0.0.10443942`)
-- **FileRegistry**: `0xF2cb3cfA36Bfb95E0FD855C1b41Ab19c517FcDB9` (Hedera ID: `0.0.10443939`)
-
-### 3. Test Each Page
-
-After deployment, verify:
-
-- ✅ `/edgraph-monitor` - Should show "LIVE GRAPH DATA" banner (not "Dashboard API unavailable")
-- ✅ `/policies` - Should load policy list (not "Failed to fetch policies")
-- ✅ `/claims` - Should load claims dashboard (not "Failed to fetch claims")
-- ✅ Home page - Should display pool data and statistics
-
-### 4. Common Issues
-
-#### Issue: "Dashboard API unavailable" on Monitor page
-
-**Cause**: Missing `POLICY_REGISTRY_ADDRESS` or `POLICY_REGISTRY_HEDERA_CONTRACT_ID`
-
-**Fix**: Ensure all 4 PolicyRegistry variables are set in Railway:
 ```bash
-POLICY_REGISTRY_ADDRESS=0xC3549920b94a795D75E6C003944943D552C46F97
-NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS=0xC3549920b94a795D75E6C003944943D552C46F97
-POLICY_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443942
-NEXT_PUBLIC_POLICY_REGISTRY_HEDERA_CONTRACT_ID=0.0.10443942
+cd packages/nextjs
+
+# Set variables one by one in Railway dashboard, or use CLI:
+railway variables set FACILITATOR_URL="https://edgraph-facilitator.up.railway.app"
+railway variables set X402_NETWORK="hedera:testnet"
+railway variables set NEXT_PUBLIC_X402_NETWORK="hedera:testnet"
+
+# Database
+railway variables set EDGRAPH_DB_PATH="/app/.data/edgraph.sqlite"
+
+# The Graph API (Ethereum mainnet USDC/WETH pool)
+railway variables set EDGRAPH_GRAPH_ENDPOINT="https://gateway.thegraph.com/api/c71b0bd685814c60d1a641b9d0bba7b8/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV"
+railway variables set EDGRAPH_GRAPH_SUBGRAPH_ID="5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV"
+railway variables set EDGRAPH_GRAPH_API_KEY="c71b0bd685814c60d1a641b9d0bba7b8"
+railway variables set EDGRAPH_GRAPH_POOL_ADDRESS="0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
+railway variables set EDGRAPH_STABLECOIN_ADDRESS="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+railway variables set EDGRAPH_STABLECOIN_SYMBOL="USDC"
+railway variables set EDGRAPH_QUOTE_TOKEN_ADDRESS="0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+railway variables set EDGRAPH_QUOTE_TOKEN_SYMBOL="WETH"
+railway variables set EDGRAPH_QUOTE_TOKEN_USD_PRICE="2500"
+
+# Evidence API pricing
+railway variables set EDGRAPH_EVIDENCE_PRICE_TINYBAR="1000000"
+railway variables set EDGRAPH_EVIDENCE_PAY_TO_ACCOUNT_ID="0.0.10426282"
+
+# Agent credentials (IMPORTANT: Keep these secret!)
+railway variables set EDGRAPH_AGENT_ACCOUNT_ID="0.0.10461760"
+railway variables set EDGRAPH_AGENT_PRIVATE_KEY="0x8aa1ed7c9bfe9db6c7c13ba36db39dc6d548c1e08d978570a149c8d792752e44"
+
+# Hedera RPC
+railway variables set HEDERA_RPC_URL="https://testnet.hashio.io/api"
+
+# PolicyRegistry contract
+railway variables set POLICY_REGISTRY_ADDRESS="0xC3549920b94a795D75E6C003944943D552C46F97"
+railway variables set NEXT_PUBLIC_POLICY_REGISTRY_ADDRESS="0xC3549920b94a795D75E6C003944943D552C46F97"
+railway variables set POLICY_REGISTRY_HEDERA_CONTRACT_ID="0.0.10443942"
+railway variables set NEXT_PUBLIC_POLICY_REGISTRY_HEDERA_CONTRACT_ID="0.0.10443942"
+
+# FileRegistry contract
+railway variables set FILE_REGISTRY_ADDRESS="0xF2cb3cfA36Bfb95E0FD855C1b41Ab19c517FcDB9"
+railway variables set NEXT_PUBLIC_FILE_REGISTRY_ADDRESS="0xF2cb3cfA36Bfb95E0FD855C1b41Ab19c517FcDB9"
+railway variables set FILE_REGISTRY_HEDERA_CONTRACT_ID="0.0.10443939"
+railway variables set NEXT_PUBLIC_FILE_REGISTRY_HEDERA_CONTRACT_ID="0.0.10443939"
+
+# WalletConnect
+railway variables set NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID="21ac6fe1145d5e738b642eaaef8019da"
+railway variables set NEXT_PUBLIC_HEDERA_MAINNET_RPC_URL="https://mainnet.hashio.io/api"
+railway variables set NEXT_PUBLIC_HEDERA_TESTNET_RPC_URL="https://testnet.hashio.io/api"
+
+# S3 placeholders (not used in production)
+railway variables set S3_ENDPOINT="http://unused"
+railway variables set S3_BUCKET="unused"
+railway variables set S3_ACCESS_KEY_ID="unused"
+railway variables set S3_SECRET_ACCESS_KEY="unused"
+railway variables set S3_REGION="us-east-1"
+railway variables set S3_FORCE_PATH_STYLE="true"
 ```
 
-#### Issue: "Failed to fetch policies" or "Failed to fetch claims"
+## Step 4: Deploy
 
-**Cause**: Same as above - PolicyRegistry variables not set
-
-**Fix**: Apply the same fix as above
-
-#### Issue: 502 Bad Gateway on API routes
-
-**Cause**: One of the critical env vars is missing or the Next.js build failed
-
-**Fix**: 
-1. Check Railway build logs for errors
-2. Verify all environment variables are set
-3. Trigger a manual redeploy
-
-#### Issue: HashPack wallet won't connect
-
-**Cause**: `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` not set
-
-**Fix**: Ensure the WalletConnect project ID is set:
 ```bash
-NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=21ac6fe1145d5e738b642eaaef8019da
+# From packages/nextjs directory
+railway up
+
+# Or push from git (if connected to GitHub)
+git push origin main
 ```
 
-## Build Configuration
+## Step 5: Seed the Database
 
-Railway should auto-detect Next.js. Verify these settings:
+After first deployment, seed the policies from on-chain:
 
-- **Build Command**: `yarn build` (or `cd packages/nextjs && yarn build`)
-- **Start Command**: `yarn start` (or `cd packages/nextjs && yarn start`)
-- **Root Directory**: `/packages/nextjs` (if using monorepo structure)
+```bash
+# Run seed script via Railway CLI
+railway run yarn seed:policies
 
-## Database Persistence
+# Or connect to the running service and execute
+railway shell
+yarn seed:policies
+```
 
-The SQLite database (`EDGRAPH_DB_PATH=.data/edgraph.sqlite`) will be lost on redeploys unless you:
+## Step 6: Verify Deployment
 
-1. Use Railway's persistent volumes (recommended)
-2. Or migrate to a hosted database like PostgreSQL
+Test the deployed endpoints:
 
-For hackathon demo purposes, losing data on redeploy is acceptable.
+```bash
+# Health check
+curl https://edgraph.up.railway.app/api/health
+
+# OpenAPI spec
+curl https://edgraph.up.railway.app/api/openapi
+
+# Test Graph snapshot (free)
+curl -X POST https://edgraph.up.railway.app/api/graph/snapshot \
+  -H "Content-Type: application/json" \
+  -d '{"poolAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640", "lookbackSeconds": 3600}'
+
+# Test evidence API with x402 payment (requires Hedera account)
+cd scripts
+RESOURCE_URL="https://edgraph.up.railway.app/api/v1/depeg-evidence" \
+BUYER_ACCOUNT_ID="0.0.YOUR_ACCOUNT" \
+BUYER_PRIVATE_KEY="0xYOUR_KEY" \
+X402_NETWORK="hedera:testnet" \
+yarn x402:buy
+```
+
+## Step 7: Deploy Facilitator (Separate Service)
+
+The x402 facilitator should be deployed as a separate Railway service:
+
+```bash
+cd ../../facilitator
+
+# Create new Railway service
+railway init
+
+# Set facilitator env vars
+railway variables set HEDERA_OPERATOR_ID="0.0.10426282"
+railway variables set HEDERA_OPERATOR_KEY="your_facilitator_private_key"
+railway variables set HEDERA_NETWORK="testnet"
+railway variables set PORT="3001"
+
+# Deploy
+railway up
+```
+
+## Troubleshooting
+
+### Issue: 502 errors on `/api/policies` or `/api/claims`
+
+**Cause**: Missing `POLICY_REGISTRY_ADDRESS` or contract ABI mismatch
+
+**Fix**:
+1. Verify `POLICY_REGISTRY_ADDRESS` is set in Railway env vars
+2. Check the contract is deployed: `yarn hardhat:verify --network hederaTestnet`
+3. Re-run seed: `railway run yarn seed:policies`
+
+### Issue: Graph queries returning mock data
+
+**Cause**: `EDGRAPH_GRAPH_API_KEY` not set or incorrect
+
+**Fix**:
+1. Verify The Graph API key is set
+2. Test the endpoint locally first with `yarn dev`
+3. Check `/api/graph/snapshot` returns live data, not mock
+
+### Issue: x402 payment fails with "facilitator unreachable"
+
+**Cause**: `FACILITATOR_URL` pointing to wrong service or facilitator not deployed
+
+**Fix**:
+1. Deploy facilitator as separate service (see Step 7)
+2. Update `FACILITATOR_URL` to the facilitator's Railway domain
+3. Test facilitator health: `curl https://edgraph-facilitator.up.railway.app/health`
+
+### Issue: Database "policies table not found"
+
+**Cause**: Database not initialized or volume not mounted
+
+**Fix**:
+1. Check volume is mounted at `/app/.data`
+2. Run seed script: `railway run yarn seed:policies`
+3. Verify with: `railway run yarn db:inspect`
+
+### Issue: WalletConnect not connecting in production
+
+**Cause**: `NEXT_PUBLIC_*` env vars not set or CORS issue
+
+**Fix**:
+1. Verify all `NEXT_PUBLIC_*` vars are set
+2. Check Railway domain is added to WalletConnect allowed origins
+3. Rebuild: `railway up --force`
 
 ## Monitoring
 
-After deployment, monitor the Railway logs for:
-- Contract read errors
-- API route failures
-- Missing environment variable warnings
-
-## Quick Verify Command
-
-Run this after deployment to verify the API health:
+View logs in Railway dashboard or via CLI:
 
 ```bash
-curl https://YOUR_RAILWAY_URL/api/health
-curl https://YOUR_RAILWAY_URL/api/dashboard
+# Stream logs
+railway logs
+
+# Tail specific service
+railway logs -f
 ```
 
-Both should return JSON (not 502 errors).
+## Production Checklist
 
----
+Before going live, verify:
 
-**Last updated**: 2026-09-13
-**Contract deployment**: Hedera testnet
-**Network**: `hedera:testnet`
+- [ ] All env vars set in Railway dashboard
+- [ ] Persistent volume mounted at `/app/.data`
+- [ ] Database seeded with policies (`yarn seed:policies`)
+- [ ] Facilitator deployed and reachable
+- [ ] Health check passes: `/api/health`
+- [ ] OpenAPI spec loads: `/api/openapi`
+- [ ] Graph snapshot returns live data (not mock)
+- [ ] Evidence API accepts x402 payment
+- [ ] WalletConnect connects from frontend
+- [ ] Agent credentials secured (never commit to git)
+- [ ] All contract addresses match deployed contracts
+
+## Security Notes
+
+1. **Never commit** `.env.production` to git
+2. **Rotate agent private key** regularly
+3. **Use Railway secrets** for sensitive values
+4. **Enable Railway MFA** on your account
+5. **Monitor agent HBAR balance** - set up alerts
+6. **Review Railway access logs** regularly
+
+## Cost Estimates
+
+- Railway Pro plan: $5/month (includes persistent storage)
+- Hedera testnet: Free (mainnet: ~$0.0001 per tx)
+- The Graph API: Free tier (100k queries/month)
+- Estimated monthly cost: $5-20 depending on traffic
+
+## Support
+
+- Railway docs: https://docs.railway.app
+- EdGraph issues: https://github.com/your-org/ethonline/issues
+- Hedera Discord: https://hedera.com/discord
