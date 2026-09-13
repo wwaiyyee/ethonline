@@ -12,12 +12,7 @@ export type DecisionOutcome =
   | "NEEDS_HUMAN_REVIEW";
 
 export type ClaimStatus =
-  | "POTENTIAL_CLAIM"
-  | "INVESTIGATING"
-  | "EVIDENCE_READY"
-  | DecisionOutcome
-  | "APPROVED"
-  | "REJECTED";
+  "POTENTIAL_CLAIM" | "INVESTIGATING" | "EVIDENCE_READY" | DecisionOutcome | "APPROVED" | "REJECTED";
 
 export type AgentAction = "BUY_EVIDENCE" | "SKIP_EVIDENCE" | "FAILED" | string;
 

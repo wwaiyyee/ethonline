@@ -1,6 +1,11 @@
 import { queryPoolData } from "~~/services/graph/client";
 import { getGraphConfig } from "~~/services/graph/config";
-import { calculateLiquidityChangeBps, calculateRecentMovementBps, calculateSwapVolumeUsd, toUsdMicros } from "~~/services/graph/price";
+import {
+  calculateLiquidityChangeBps,
+  calculateRecentMovementBps,
+  calculateSwapVolumeUsd,
+  toUsdMicros,
+} from "~~/services/graph/price";
 import type { MarketObservation, PolicyTerms } from "~~/services/policy/types";
 
 export type PoolRiskSnapshot = {
@@ -18,7 +23,10 @@ export type PoolRiskSnapshot = {
 };
 
 /** Load-bearing agent tool: the spend decision is made from this live Graph snapshot. */
-export async function queryPoolRiskSnapshot(policyId: string, observedAt = Math.floor(Date.now() / 1000)): Promise<PoolRiskSnapshot> {
+export async function queryPoolRiskSnapshot(
+  policyId: string,
+  observedAt = Math.floor(Date.now() / 1000),
+): Promise<PoolRiskSnapshot> {
   const config = getGraphConfig();
   const data = await queryPoolData({ config });
   const latest = data.samples[data.samples.length - 1];
@@ -50,7 +58,10 @@ export async function queryPoolRiskSnapshot(policyId: string, observedAt = Math.
   };
 }
 
-export function shouldBuyEvidence(snapshot: PoolRiskSnapshot, policy: PolicyTerms): { buy: boolean; rationale: string } {
+export function shouldBuyEvidence(
+  snapshot: PoolRiskSnapshot,
+  policy: PolicyTerms,
+): { buy: boolean; rationale: string } {
   const thresholdMicros = Math.round((policy.thresholdBps / 10_000) * 1_000_000);
   const belowThreshold = snapshot.currentPriceUsdMicros < thresholdMicros;
   const worsening = snapshot.recentPriceMovementBps < -25 || snapshot.liquidityChangeBps < -100;

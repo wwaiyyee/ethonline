@@ -22,4 +22,3 @@ export function calculateSwapVolumeUsd(poolData: GraphPoolData): number {
   const swapVolume = poolData.pool.swaps.reduce((sum, swap) => sum + Math.abs(Number(swap.amountUSD) || 0), 0);
   return swapVolume || Number(poolData.pool.volumeUSD) || 0;
 }
-

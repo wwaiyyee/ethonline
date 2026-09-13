@@ -129,9 +129,9 @@ export type AbiEventInputs<TAbi extends Abi, TEventName extends ExtractAbiEventN
 >["inputs"];
 
 export enum ContractCodeStatus {
-  "LOADING",
-  "DEPLOYED",
-  "NOT_FOUND",
+  LOADING,
+  DEPLOYED,
+  NOT_FOUND,
 }
 
 type AbiStateMutability = "pure" | "view" | "nonpayable" | "payable";
@@ -281,10 +281,9 @@ export type EventFilters<
   IndexedEventInputs<TContractName, TEventName> extends never
     ? never
     : {
-        [Key in IsContractDeclarationMissing<
-          any,
-          IndexedEventInputs<TContractName, TEventName>["name"] & string
-        >]?: AbiParameterToPrimitiveType<Extract<IndexedEventInputs<TContractName, TEventName>, { name: Key }>>;
+        [
+          Key in IsContractDeclarationMissing<any, IndexedEventInputs<TContractName, TEventName>["name"] & string>
+        ]?: AbiParameterToPrimitiveType<Extract<IndexedEventInputs<TContractName, TEventName>, { name: Key }>>;
       }
 >;
 

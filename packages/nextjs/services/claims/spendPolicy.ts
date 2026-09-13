@@ -21,12 +21,19 @@ export function canSpendEvidence(input: {
   const requestedTinybar = input.requestedTinybar ?? getEvidencePriceTinybar();
   const alreadySpentTinybar = input.alreadySpentTinybar ?? 0n;
   if (requestedTinybar < 0n || alreadySpentTinybar < 0n) {
-    return { allowed: false, requestedTinybar, remainingTinybar: 0n, rationale: "Evidence spend values cannot be negative." };
+    return {
+      allowed: false,
+      requestedTinybar,
+      remainingTinybar: 0n,
+      rationale: "Evidence spend values cannot be negative.",
+    };
   }
 
   const policyBudget = parseTinybar(input.policy.maxEvidenceBudgetTinybar, "policy.maxEvidenceBudgetTinybar");
   const configuredBudget = process.env.EDGRAPH_AGENT_HBAR_BUDGET_TINYBAR?.trim();
-  const agentBudget = configuredBudget ? parseTinybar(configuredBudget, "EDGRAPH_AGENT_HBAR_BUDGET_TINYBAR") : policyBudget;
+  const agentBudget = configuredBudget
+    ? parseTinybar(configuredBudget, "EDGRAPH_AGENT_HBAR_BUDGET_TINYBAR")
+    : policyBudget;
   const budget = policyBudget < agentBudget ? policyBudget : agentBudget;
   const remainingTinybar = budget > alreadySpentTinybar ? budget - alreadySpentTinybar : 0n;
   const allowed = requestedTinybar > 0n && requestedTinybar <= remainingTinybar;

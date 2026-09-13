@@ -118,8 +118,7 @@ export function upsertPolicy(policy: PolicyTerms): PolicyTerms {
 
 export function getPolicy(policyId: string): PolicyTerms | null {
   const row = getDb().prepare(`SELECT ${POLICY_COLUMNS} FROM policies WHERE policy_id = ?`).get(policyId) as
-    | PolicyRow
-    | undefined;
+    PolicyRow | undefined;
   return row ? rowToPolicy(row) : null;
 }
 

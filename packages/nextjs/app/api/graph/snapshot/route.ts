@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryPoolRiskSnapshot } from "~~/services/graph/agentTool";
 import { GraphConfigurationError } from "~~/services/graph/config";
-import { upsertObservation } from "~~/services/observations/repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +35,7 @@ export async function POST(req: Request) {
     let observation = snapshot.observation;
     if (body.policyId) {
       try {
+        const { upsertObservation } = await import("~~/services/observations/repository");
         observation = upsertObservation(snapshot.observation);
       } catch (err) {
         console.warn(`[api/graph/snapshot] Could not persist observation for ${policyId}:`, err);

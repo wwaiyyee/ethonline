@@ -19,4 +19,3 @@ export function updateClaimAgentDecision(claimId: string, action: string, ration
     )
     .run(action, rationale, claimId);
 }
-

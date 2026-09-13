@@ -1,7 +1,11 @@
 import type { EvidenceReport, PolicyDecision, PolicyTerms } from "~~/services/policy/types";
 
 /** Pure policy evaluation. It recommends; it never transfers funds. */
-export function evaluateEvidence(policy: PolicyTerms, evidence: EvidenceReport, evaluatedAt = Math.floor(Date.now() / 1000)): PolicyDecision {
+export function evaluateEvidence(
+  policy: PolicyTerms,
+  evidence: EvidenceReport,
+  evaluatedAt = Math.floor(Date.now() / 1000),
+): PolicyDecision {
   const reasons: string[] = [];
   if (!evidence.depegVerified) reasons.push("The live evidence window did not satisfy the duration trigger.");
   if (evidence.liquidityChangeBps < -2_000) reasons.push("Liquidity fell by more than 20%, requiring human review.");
@@ -18,4 +22,3 @@ export function evaluateEvidence(policy: PolicyTerms, evidence: EvidenceReport, 
     evaluatedAt,
   };
 }
-

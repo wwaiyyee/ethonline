@@ -1,9 +1,10 @@
-const { getDb, closeDb } = require('./services/db/client.ts');
+const { getDb, closeDb } = require("./services/db/client.ts");
 
 const db = getDb();
 
 // Update the first claim with more complete data
-db.prepare(`
+db.prepare(
+  `
   UPDATE claims
   SET
     lowest_price_usd_micros = 970000,
@@ -17,10 +18,12 @@ db.prepare(`
     evidence_file_ids = '[]',
     notes = 'Automated depeg detection triggered by EdGraph monitor'
   WHERE claim_id = 'claim-test-policy-usdc-1-1788976831'
-`).run();
+`,
+).run();
 
 // Update the second claim
-db.prepare(`
+db.prepare(
+  `
   UPDATE claims
   SET
     detected_at = 1789153591,
@@ -29,7 +32,8 @@ db.prepare(`
     last_agent_action = 'MONITORING',
     notes = 'Short depeg event - monitoring for extension'
   WHERE claim_id = 'claim-0x4dee2485a9c74c0d8cd0d5726d999f717df042d30764ff84385059cf5eea0430-1789153591'
-`).run();
+`,
+).run();
 
-console.log('Claims updated successfully');
+console.log("Claims updated successfully");
 closeDb();

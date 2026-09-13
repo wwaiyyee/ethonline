@@ -7,4 +7,3 @@ export async function monitorPolicy(policy: PolicyTerms) {
   const snapshot = await queryPoolRiskSnapshot(policy.policyId);
   return upsertObservation(snapshot.observation);
 }
-

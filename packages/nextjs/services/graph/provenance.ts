@@ -23,4 +23,3 @@ export function makeGraphProvenance(input: {
     latestBlock: input.latestBlock,
   };
 }
-

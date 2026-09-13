@@ -34,8 +34,16 @@ function required(name: string): string {
 }
 
 function makeEvidenceUrl(): string {
-  const value = process.env.EDGRAPH_EVIDENCE_API_URL?.trim() || "http://localhost:3000/api/v1/depeg-evidence";
-  return new URL(value).toString();
+  const explicit = process.env.EDGRAPH_EVIDENCE_API_URL?.trim();
+  if (explicit) return new URL(explicit).toString();
+
+  // Derive from app URL for Railway / production deployments
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null);
+  if (appUrl) return new URL("/api/v1/depeg-evidence", appUrl).toString();
+
+  return "http://localhost:3000/api/v1/depeg-evidence";
 }
 
 /**

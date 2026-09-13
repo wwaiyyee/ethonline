@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listPolicies } from "~~/services/policy/repository";
+import { PolicyRegistryNotDeployedError, listPoliciesFromHedera } from "~~/services/policy/chainReader";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +11,11 @@ function parsePageParam(value: string | null, fallback: number, max: number): nu
   return Number.isSafeInteger(parsed) && parsed <= max ? parsed : null;
 }
 
+/**
+ * GET /api/policies — reads policies from the on-chain PolicyRegistry (source of truth),
+ * then caches them in SQLite for the monitor/agent. Falls back to SQLite cache if chain
+ * read fails.
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const offset = parsePageParam(searchParams.get("offset"), 0, Number.MAX_SAFE_INTEGER);
@@ -21,17 +26,46 @@ export async function GET(req: Request) {
       { status: 400 },
     );
   }
+
+  // Primary path: read from chain (source of truth)
   try {
-    console.log("[api/policies] Fetching policies with offset", offset, "limit", limit);
-    const allPolicies = listPolicies();
-    const total = allPolicies.length;
-    const policies = allPolicies.slice(offset, offset + limit);
-    console.log("[api/policies] Got", policies.length, "policies, total", total);
-    return NextResponse.json({ policies, total });
-  } catch (error) {
-    console.error("[api/policies] read failed", error);
-    console.error("[api/policies] error details:", error instanceof Error ? error.stack : String(error));
-    return NextResponse.json({ error: "Failed to read policies from database" }, { status: 500 });
+    console.log("[api/policies] Reading from on-chain PolicyRegistry...");
+    const { policies: chainPolicies, total } = await listPoliciesFromHedera(offset, limit);
+    console.log("[api/policies] Got", chainPolicies.length, "policies from chain, total", total);
+
+    // Best-effort: cache policies in SQLite for monitor/agent use
+    try {
+      const { upsertPolicy } = await import("~~/services/policy/repository");
+      for (const policy of chainPolicies) {
+        try {
+          upsertPolicy(policy);
+        } catch {
+          // Ignore individual upsert failures
+        }
+      }
+    } catch {
+      // SQLite unavailable — that's fine, chain data is primary
+    }
+
+    return NextResponse.json({ policies: chainPolicies, total });
+  } catch (chainError) {
+    if (chainError instanceof PolicyRegistryNotDeployedError) {
+      return NextResponse.json({ error: chainError.message }, { status: 503 });
+    }
+    console.warn("[api/policies] Chain read failed, trying SQLite cache...", chainError);
+
+    // Fallback: read from SQLite cache
+    try {
+      const { listPolicies } = await import("~~/services/policy/repository");
+      const allPolicies = listPolicies();
+      const total = allPolicies.length;
+      const policies = allPolicies.slice(offset!, offset! + limit!);
+      console.log("[api/policies] SQLite fallback:", policies.length, "policies, total", total);
+      return NextResponse.json({ policies, total });
+    } catch (dbError) {
+      console.error("[api/policies] Both chain and SQLite failed", { chainError, dbError });
+      return NextResponse.json({ error: "Failed to read policies from both chain and database" }, { status: 500 });
+    }
   }
 }
 

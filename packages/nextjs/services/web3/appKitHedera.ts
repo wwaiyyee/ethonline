@@ -11,11 +11,15 @@ import scaffoldConfig from "~~/scaffold.config";
 
 const projectId = scaffoldConfig.walletConnectProjectId;
 
+const ssrFallbackUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : "http://localhost:3000");
+
 const metadata = {
   name: "EdGraph",
   description: "Stablecoin coverage operations on Hedera",
-  url: typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
-  icons: [typeof window !== "undefined" ? `${window.location.origin}/logo.svg` : "http://localhost:3000/logo.svg"],
+  url: typeof window !== "undefined" ? window.location.origin : ssrFallbackUrl,
+  icons: [typeof window !== "undefined" ? `${window.location.origin}/logo.svg` : `${ssrFallbackUrl}/logo.svg`],
 };
 
 export const nativeNetworks = [HederaChainDefinition.Native.Testnet, HederaChainDefinition.Native.Mainnet] as const;
